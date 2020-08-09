@@ -45,8 +45,8 @@ var n={0,2,3}
 
 # these state names are not yet used by Golly
 0 empty
-1 electron tail
-2 electron head
+1 electron head
+2 electron tail
 3 copper wire
 
 @COLORS
