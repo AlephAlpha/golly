@@ -1823,11 +1823,18 @@ static FILE* FindRuleFile(const wxString& rulename)
 {
     const wxString extn = wxT(".rule");
     wxString path;
+    FILE* f;
     
-    // first look for rulename.rule in userrules
+    // first look for rulename.rule in tempdir
+    path = tempdir + rulename;
+    path += extn;
+    f = OPENFILE(path);
+    if (f) return f;
+    
+    // now look for rulename.rule in userrules
     path = userrules + rulename;
     path += extn;
-    FILE* f = OPENFILE(path);
+    f = OPENFILE(path);
     if (f) return f;
     
     // now look for rulename.rule in rulesdir
@@ -2319,9 +2326,10 @@ static void UpdateCurrentColors()
 {
     // set current layer's colors, icons and state names according to current algo and rule
     AlgoData* ad = algoinfo[currlayer->algtype];
-    int maxstate = currlayer->algo->NumCellStates() - 1;
+    lifealgo* curralgo = currlayer->algo;
+    int maxstate = curralgo->NumCellStates() - 1;
     
-    wxString rulename = wxString(currlayer->algo->getrule(), wxConvLocal);
+    wxString rulename = wxString(curralgo->getrule(), wxConvLocal);
     // replace any '\' and '/' chars with underscores;
     // ie. given 12/34/6 we look for 12_34_6.rule
     rulename.Replace(wxT("\\"), wxT("_"));
@@ -2372,7 +2380,6 @@ static void UpdateCurrentColors()
     FILE* rulefile = FindRuleFile(rulename);
     if (rulefile) {
         LoadRuleInfo(rulefile, rulename, &loadedcolors, &loadedicons, &loadednames);
-        
         if (!loadedcolors || !loadedicons || !loadednames) {
             // if rulename has the form foo-* then look for foo-shared.rule
             // and load its colors or icons or names
@@ -2380,21 +2387,19 @@ static void UpdateCurrentColors()
             if (!prefix.IsEmpty() && !rulename.EndsWith(wxT("-shared"))) {
                 rulename = prefix + wxT("-shared");
                 rulefile = FindRuleFile(rulename);
-                if (rulefile) LoadRuleInfo(rulefile, rulename, &loadedcolors, &loadedicons, &loadednames);
+                if (rulefile) {
+                    LoadRuleInfo(rulefile, rulename, &loadedcolors, &loadedicons, &loadednames);
+                }
             }
         }
-        
-        if (!loadedicons) UseDefaultIcons(maxstate);
-        
-        // use the smallest icons to check if they are multi-color
-        if (currlayer->icons7x7 && MultiColorBitmaps(currlayer->icons7x7, maxstate)) {
-            currlayer->multicoloricons = true;
-        }
-        
-    } else {
-        // rulename.rule wasn't found so use default icons
-        UseDefaultIcons(maxstate);
-    }    
+    }
+    
+    if (!loadedicons) UseDefaultIcons(maxstate);
+
+    // use the smallest icons to check if they are multi-color
+    if (currlayer->icons7x7 && MultiColorBitmaps(currlayer->icons7x7, maxstate)) {
+        currlayer->multicoloricons = true;
+    }
 
     // create icon texture atlases (used for rendering)
     currlayer->numicons = maxstate;

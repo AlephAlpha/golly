@@ -41,6 +41,9 @@ public:
    virtual const char *getrulesdir() {
       return "" ;
    }
+   virtual const char *gettempdir() {
+      return "" ;
+   }
 } ;
 
 baselifeerrors baselifeerrors ;
@@ -88,6 +91,10 @@ const char *lifegetuserrules() {
 
 const char *lifegetrulesdir() {
    return errorhandler->getrulesdir() ;
+}
+
+const char *lifegettempdir() {
+   return errorhandler->gettempdir() ;
 }
 
 static FILE *f ;

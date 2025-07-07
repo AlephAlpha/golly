@@ -146,6 +146,11 @@ public:
    enum TGridType { SQUARE_GRID, TRI_GRID, HEX_GRID, VN_GRID } ;
    TGridType getgridtype() const { return grid_type ; }
 
+   // for RuleLoader algo
+   std::string local_file;      // name of RLE file with local @RULE data
+   std::string local_rule;      // name of local @RULE
+   size_t RULE_offset;          // offset in RLE file of @RULE line
+
 protected:
    lifepoll *poller ;
    static int verbose ;

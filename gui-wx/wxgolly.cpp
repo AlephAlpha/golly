@@ -110,6 +110,17 @@ public:
         return (const char*) dirbuff;
     }
     
+    virtual const char* gettempdir() {
+        // need to be careful converting Unicode wxString to char*
+        #ifdef __WXMAC__
+            // we need to convert path to decomposed UTF8 so fopen will work
+            dirbuff = tempdir.fn_str();
+        #else
+            dirbuff = tempdir.mb_str(wxConvLocal);
+        #endif
+        return (const char*) dirbuff;
+    }
+    
 private:
     wxCharBuffer dirbuff;
 };

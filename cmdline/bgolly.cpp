@@ -53,8 +53,9 @@ public:
 } ;
 nullrender renderer ;
 
-// the RuleLoader algo looks for .rule files in the user_rules directory
-// then in the supplied_rules directory
+// the RuleLoader algo looks for .rule files in the temp_rules directory,
+// then in the user_rules directory, then in the supplied_rules directory
+char* temp_rules = (char *)"";
 char* user_rules = (char *)"";              // can be changed by -s or --search
 char* supplied_rules = (char *)"Rules/";
 
@@ -80,6 +81,7 @@ public:
    virtual void endprogress() { abortprogress(1, "") ; }
    virtual const char* getuserrules() { return user_rules ; }
    virtual const char* getrulesdir() { return supplied_rules ; }
+   virtual const char* gettempdir() { return temp_rules ; }
 } ;
 progerrors progerrors_instance ;
 
@@ -109,6 +111,7 @@ public:
    virtual void endprogress() {}
    virtual const char* getuserrules() { return user_rules ; }
    virtual const char* getrulesdir() { return supplied_rules ; }
+   virtual const char* gettempdir() { return temp_rules ; }
 } ;
 stderrors stderrors_instance ;
 

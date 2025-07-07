@@ -3,11 +3,17 @@
 
 #include "readpattern.h"
 #include "lifealgo.h"
-#include "liferules.h"     // for MAXRULESIZE
-#include "util.h"          // for lifewarning and *progress calls
+#include "liferules.h"      // for MAXRULESIZE
+#include "util.h"           // for linereader, lifewarning and *progress calls
+#include "ruleloaderalgo.h"
+#include <typeinfo>         // for typeid
 #include <cstdio>
 #ifdef ZLIB
 #include <zlib.h>
+#if ZLIB_VERNUM < 0x1240
+    // we need gzoffset
+    error("Golly requires zlib 1.2.4 or later");
+#endif
 #endif
 #include <cstdlib>
 #include <cstring>
@@ -20,9 +26,9 @@ bool getedges = false;              // find pattern edges?
 bigint top, left, bottom, right;    // the pattern edges
 
 #ifdef __APPLE__
-#define BUFFSIZE 4096      // 4K is best for Mac OS X
+#define BUFFSIZE 4096       // 4K is best for Mac OS X
 #else
-#define BUFFSIZE 8192      // 8K is best for Windows and other platforms???
+#define BUFFSIZE 8192       // 8K is best for Windows and other platforms???
 #endif
 
 #ifdef ZLIB
@@ -34,7 +40,7 @@ FILE *pattfile ;
 char filebuff[BUFFSIZE];
 int buffpos, bytesread, prevchar;
 
-long filesize;             // length of file in bytes
+long filesize;              // length of file in bytes
 
 // use buffered getchar instead of slow fgetc
 // don't override the "getchar" name which is likely to be a macro
@@ -43,14 +49,7 @@ int mgetchar() {
       double filepos;
       #ifdef ZLIB
          bytesread = gzread(zinstream, filebuff, BUFFSIZE);
-         #if ZLIB_VERNUM >= 0x1240
-            // gzoffset is only available in zlib 1.2.4 or later
-            filepos = gzoffset(zinstream);
-         #else
-            // use an approximation of file position if file is compressed
-            filepos = gztell(zinstream);
-            if (filepos > 0 && gzdirect(zinstream) == 0) filepos /= 4;
-         #endif
+         filepos = gzoffset(zinstream);
       #else
          bytesread = fread(filebuff, 1, BUFFSIZE, pattfile);
          filepos = ftell(pattfile);
@@ -675,10 +674,35 @@ static bool isplainrle(const char *line) {
    return have_digit || *end == '!';
 }
 
-const char *loadpattern(lifealgo &imp) {
+static void LookForLocalRule(const char *filename, lifealgo &imp) {
+    // if filename ends with ".gz" then the following fopen fails
+    // (which is good, because we don't want to support compressed files)
+    FILE* rlefile = fopen(filename, "rt");
+    if (rlefile == 0) return;
+    
+    // look in given RLE file for a line starting with @RULE name
+    char linebuf[LINESIZE + 1];
+    linereader reader(rlefile);
+    while (reader.fgets(linebuf, LINESIZE)) {
+        if (strncmp(linebuf, "@RULE ", 6) == 0) {            
+            imp.local_rule = linebuf+6;            
+            imp.local_file = filename;
+            imp.RULE_offset = ftell(rlefile) - strlen(linebuf) - 1;
+            break;
+        }
+    }
+    reader.close(); // closes rlefile
+}
+
+const char *loadpattern(const char *filename, lifealgo &imp) {
    char line[LINESIZE + 1] ;
    const char *errmsg = 0;
    size_t nwsindex = 0;   // index of first non-whitespace character in line
+
+   // these only change if an RLE file contains @RULE data
+   imp.RULE_offset = 0L;
+   imp.local_file.clear();
+   imp.local_rule.clear();
 
    // set rule to Conway's Life (default if explicit rule isn't supplied,
    // such as a text pattern like "...ooo$$$ooo")
@@ -738,6 +762,15 @@ const char *loadpattern(lifealgo &imp) {
       }
 
    } else if (line[nwsindex] == '#' || line[nwsindex] == 'x') {
+
+      // is there simpler/better way to test if imp is a RuleLoader instance???!!!
+      // maybe using staticAlgoInfo *ai = staticAlgoInfo::byName("RuleLoader");
+      lifealgo* ruleloader = new ruleloaderalgo();
+      if (typeid(imp) == typeid(*ruleloader)) {
+         LookForLocalRule(filename, imp);
+      }
+      delete ruleloader;
+
       errmsg = readrle(imp, line, nwsindex);
       if (errmsg == 0) {
          imp.endofpattern() ;
@@ -819,7 +852,7 @@ const char *readpattern(const char *filename, lifealgo &imp) {
 #endif
    buffpos = BUFFSIZE;                       // for 1st getchar call
    prevchar = 0;                             // for 1st getline call
-   const char *errmsg = loadpattern(imp) ;
+   const char *errmsg = loadpattern(filename, imp) ;
 #ifdef ZLIB
    gzclose(zinstream) ;
 #else
@@ -848,7 +881,7 @@ const char *readclipboard(const char *filename, lifealgo &imp,
    bottom = 0;
    right = 0;
    getedges = true;
-   const char *errmsg = loadpattern(imp);
+   const char *errmsg = loadpattern(filename, imp);
    getedges = false;
    *t = top;
    *l = left;

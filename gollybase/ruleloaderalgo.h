@@ -3,9 +3,11 @@
 
 #ifndef RULELOADERALGO_H
 #define RULELOADERALGO_H
+
 #include "ghashbase.h"
 #include "ruletable_algo.h"
 #include "ruletreealgo.h"
+
 /**
  *   This algorithm loads rule data from external files.
  */
@@ -31,7 +33,7 @@ protected:
     enum RuleTypes {TABLE, TREE} rule_type;
     
     void SetAlgoVariables(RuleTypes ruletype);
-    const char* LoadTableOrTree(FILE* rulefile, const char* rule);
+    const char* LoadTableOrTree(FILE* rulefile, const char* rule, size_t offset);
 };
 
 extern const char* noTABLEorTREE;

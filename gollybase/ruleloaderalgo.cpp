@@ -2,12 +2,11 @@
 // See docs/License.html for the copyright notice.
 
 #include "ruleloaderalgo.h"
-
-#include "util.h"       // for lifegetuserrules, lifegetrulesdir, lifefatal
-
+#include "util.h"       // for lifegetuserrules, lifegetrulesdir, lifegettempdir, lifefatal
 #include <string.h>     // for strcmp, strchr
 #include <string>       // for std::string
 
+const int MAX_LINE_LEN = 4096;
 const char* noTABLEorTREE = "No @TABLE or @TREE section found in .rule file.";
 
 int ruleloaderalgo::NumCellStates()
@@ -22,9 +21,10 @@ static FILE* OpenRuleFile(std::string& rulename, const char* dir)
 {
     // try to open rulename.rule in given dir
     std::string path = dir;
+    if (path.length() == 0) return NULL;
     int istart = (int)path.size();
     path += rulename + ".rule";
-    // change "dangerous" characters to underscores
+    // change "dangerous" characters in rulename to underscores
     for (unsigned int i=istart; i<path.size(); i++)
         if (path[i] == '/' || path[i] == '\\') path[i] = '_';
     return fopen(path.c_str(), "rt");
@@ -72,14 +72,14 @@ void ruleloaderalgo::SetAlgoVariables(RuleTypes ruletype)
     ghashbase::setrule("not used");
 }
 
-const char* ruleloaderalgo::LoadTableOrTree(FILE* rulefile, const char* rule)
+const char* ruleloaderalgo::LoadTableOrTree(FILE* rulefile, const char* rule, size_t offset)
 {
     const char *err;
-    const int MAX_LINE_LEN = 4096;
     char line_buffer[MAX_LINE_LEN+1];
     int lineno = 0;
 
     linereader lr(rulefile);
+    if (offset > 0L) fseek(rulefile, offset, SEEK_SET);
 
     // find line starting with @TABLE or @TREE
     while (lr.fgets(line_buffer,MAX_LINE_LEN) != 0) {
@@ -108,9 +108,36 @@ const char* ruleloaderalgo::LoadTableOrTree(FILE* rulefile, const char* rule)
     return noTABLEorTREE;
 }
 
+static const char* CreateTemporaryRule(const char* tempdir, FILE* rulefile, std::string& rulename, size_t offset)
+{
+    char line_buffer[MAX_LINE_LEN+1];
+    
+    std::string temppath = tempdir;
+    temppath += rulename + ".rule";
+    FILE* tempfile = fopen(temppath.c_str(), "w");
+    if (!tempfile) {
+        fclose(rulefile);
+        return "Failed to create temporary rule file!";
+    }
+
+    linereader lr(rulefile);
+    fseek(rulefile, offset, SEEK_SET); // skip to start of @RULE line
+
+    // copy @RULE data to rulename.rule in tempdir
+    while (lr.fgets(line_buffer,MAX_LINE_LEN) != 0) {
+        fputs(line_buffer, tempfile);
+        fputs("\n", tempfile);
+    }
+
+    lr.close(); // closes rulefile
+    fclose(tempfile);
+    return NULL;
+}
+
 const char* ruleloaderalgo::setrule(const char* s)
 {
-    const char *err = NULL;
+    FILE* rulefile;
+    const char *err;
     const char *colonptr = strchr(s,':');
     std::string rulename(s);
     if (colonptr) rulename.assign(s,colonptr);
@@ -130,22 +157,50 @@ const char* ruleloaderalgo::setrule(const char* s)
         return NULL;
     }
     
-    // look for .rule file in user's rules dir then in Golly's rules dir
-    bool inuser = true;
-    FILE* rulefile = OpenRuleFile(rulename, lifegetuserrules());
+    // check if a loaded RLE file contained local @RULE data
+    if (local_file.length() > 0) {
+        if (local_rule != rulename) {
+            return "Local @RULE name does not match rule in RLE header!";
+        }
+        
+        rulefile = fopen(local_file.c_str(), "rt");
+        if (!rulefile) {
+            return "Failed to open file with local @RULE data!";
+        }
+        
+        const char* tempdir = lifegettempdir();
+        if (strlen(tempdir) == 0) {
+            // in bgolly we only need to do this
+            return LoadTableOrTree(rulefile, s, RULE_offset);
+        } else {
+            // for Golly we need to create rulename.rule in tempdir
+            // so we can undo gen changes, create a new pattern, etc
+            err = CreateTemporaryRule(tempdir, rulefile, rulename, RULE_offset);
+            if (err) return err;
+            local_file.clear(); // no need to do this again
+        }
+    }
+    
+    // look for .rule file in tempdir, then in user's rules dir, then in Golly's rules dir
+    bool inuser = false;
+    rulefile = OpenRuleFile(rulename, lifegettempdir());
     if (!rulefile) {
-        inuser = false;
-        rulefile = OpenRuleFile(rulename, lifegetrulesdir());
+        rulefile = OpenRuleFile(rulename, lifegetuserrules());
+        if (rulefile) {
+            inuser = true;
+        } else {
+            rulefile = OpenRuleFile(rulename, lifegetrulesdir());
+        }
     }
     if (rulefile) {
-        err = LoadTableOrTree(rulefile, s);
+        err = LoadTableOrTree(rulefile, s, 0L);
         if (inuser && err && (strcmp(err, noTABLEorTREE) == 0)) {
             // if .rule file was found in user's rules dir but had no
             // @TABLE or @TREE section then we look in Golly's rules dir
             // (this lets user override the colors/icons/names in a supplied .rule
             // file without having to copy the entire file)
             rulefile = OpenRuleFile(rulename, lifegetrulesdir());
-            if (rulefile) err = LoadTableOrTree(rulefile, s);
+            if (rulefile) err = LoadTableOrTree(rulefile, s, 0L);
         }
         return err;
     }
@@ -176,6 +231,10 @@ ruleloaderalgo::ruleloaderalgo()
     // initialize rule_type
     LocalRuleTree->setrule( LocalRuleTree->DefaultRule() );
     SetAlgoVariables(TREE);
+
+    RULE_offset = 0L;
+    local_file.clear();
+    local_rule.clear();
 }
 
 ruleloaderalgo::~ruleloaderalgo()

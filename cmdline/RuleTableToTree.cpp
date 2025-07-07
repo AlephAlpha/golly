@@ -167,6 +167,9 @@ public:
    virtual const char *getrulesdir() {
       return "Rules/" ;
    }
+   virtual const char *gettempdir() {
+      return "" ;
+   }
 } mylifeerrors ;
 class my_ruletable_algo : public ruletable_algo {
 public:

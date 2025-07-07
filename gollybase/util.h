@@ -16,6 +16,7 @@ bool lifeabortprogress(double fracdone, const char *newmsg) ;
 void lifeendprogress() ;
 const char *lifegetuserrules() ;
 const char *lifegetrulesdir() ;
+const char *lifegettempdir() ;
 bool isaborted() ;
 FILE *getdebugfile() ;
 /**
@@ -48,6 +49,7 @@ public:
    virtual void endprogress() = 0 ;
    virtual const char *getuserrules() = 0 ;
    virtual const char *getrulesdir() = 0 ;
+   virtual const char *gettempdir() = 0 ;
    static void seterrorhandler(lifeerrors *obj) ;
    bool aborted ;
 } ;
