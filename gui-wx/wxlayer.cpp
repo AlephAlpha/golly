@@ -1853,7 +1853,8 @@ static void CheckRuleHeader(char* linebuf, const wxString& rulename)
     if (strncmp(linebuf, "@RULE ", 6) != 0) {
         wxString msg = _("The first line in ");
         msg += rulename;
-        msg += _(".rule does not start with @RULE.");
+        msg += _(".rule does not start with @RULE.\n");
+        msg += wxString(linebuf,wxConvLocal);
         Warning(msg);
     } else if (strcmp(linebuf+6, (const char*)rulename.mb_str(wxConvLocal)) != 0) {
         wxString ruleinfile = wxString(linebuf+6, wxConvLocal);

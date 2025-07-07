@@ -79,7 +79,7 @@ const char* ruleloaderalgo::LoadTableOrTree(FILE* rulefile, const char* rule, si
     int lineno = 0;
 
     linereader lr(rulefile);
-    if (offset > 0L) fseek(rulefile, offset, SEEK_SET);
+    if (offset > 0L) fseek(rulefile, (long)offset, SEEK_SET);
 
     // find line starting with @TABLE or @TREE
     while (lr.fgets(line_buffer,MAX_LINE_LEN) != 0) {
@@ -111,6 +111,7 @@ const char* ruleloaderalgo::LoadTableOrTree(FILE* rulefile, const char* rule, si
 static const char* CreateTemporaryRule(const char* tempdir, FILE* rulefile, std::string& rulename, size_t offset)
 {
     char line_buffer[MAX_LINE_LEN+1];
+    int count = 0;
     
     std::string temppath = tempdir;
     temppath += rulename + ".rule";
@@ -121,12 +122,15 @@ static const char* CreateTemporaryRule(const char* tempdir, FILE* rulefile, std:
     }
 
     linereader lr(rulefile);
-    fseek(rulefile, offset, SEEK_SET); // skip to start of @RULE line
+    fseek(rulefile, (long)offset, SEEK_SET); // skip to start of @RULE line
 
     // copy @RULE data to rulename.rule in tempdir
     while (lr.fgets(line_buffer,MAX_LINE_LEN) != 0) {
-        fputs(line_buffer, tempfile);
-        fputs("\n", tempfile);
+        count++;
+        // offset can be off by 1 on Windows (presumably due to CRLF)
+        if (count == 1 && line_buffer[0] == 'R') fputs("@",tempfile);
+        fputs(line_buffer,tempfile);
+        fputs("\n",tempfile);
     }
 
     lr.close(); // closes rulefile
