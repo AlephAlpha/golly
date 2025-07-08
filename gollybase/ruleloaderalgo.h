@@ -23,6 +23,7 @@ public:
     virtual const char* getrule();
     virtual const char* DefaultRule();
     virtual int NumCellStates();
+    virtual int isRuleLoader() { return 1; }
     static void doInitializeAlgoInfo(staticAlgoInfo &);
 
 protected:

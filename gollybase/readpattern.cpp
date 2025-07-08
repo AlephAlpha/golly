@@ -5,8 +5,6 @@
 #include "lifealgo.h"
 #include "liferules.h"      // for MAXRULESIZE
 #include "util.h"           // for linereader, lifewarning and *progress calls
-#include "ruleloaderalgo.h"
-#include <typeinfo>         // for typeid
 #include <cstdio>
 #ifdef ZLIB
 #include <zlib.h>
@@ -763,13 +761,8 @@ const char *loadpattern(const char *filename, lifealgo &imp) {
 
    } else if (line[nwsindex] == '#' || line[nwsindex] == 'x') {
 
-      // is there simpler/better way to test if imp is a RuleLoader instance???!!!
-      // maybe using staticAlgoInfo *ai = staticAlgoInfo::byName("RuleLoader");
-      lifealgo* ruleloader = new ruleloaderalgo();
-      if (typeid(imp) == typeid(*ruleloader)) {
-         LookForLocalRule(filename, imp);
-      }
-      delete ruleloader;
+      // only look for @RULE data if imp is a RuleLoader algo
+      if (imp.isRuleLoader()) LookForLocalRule(filename, imp);
 
       errmsg = readrle(imp, line, nwsindex);
       if (errmsg == 0) {
