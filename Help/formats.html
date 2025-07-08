@@ -145,6 +145,14 @@ A few more points are worth mentioning (these ensure that Golly is consistent wi
 <li> An error occurs if there is whitespace between a count and symbol in the pattern data.
 <li> An error occurs if a count has a leading zero.
 <li> Initial empty rows or columns in the pattern data are respected when pasting headerless RLE.
+<li><a name="temprules"></a>
+Golly also allows @RULE data to be included at the end of a .rle file
+(but not .rle.gz).  When Golly opens such a file it copies the @RULE data
+into a suitably named .rule file in Golly's temporary folder.
+Later on, when Golly needs to search for a .rule file, it looks in the
+temporary folder first, then in <a href="prefs:control">your rules folder</a>,
+then in the supplied Rules folder.
+Note that all files in the temporary folder are deleted when Golly quits.
 </ul>
 
 
@@ -236,7 +244,7 @@ algorithms are not compatible.
 
 <p>
 A .rule file contains all the information about a rule: its name, documentation,
-table/tree data (used by the RuleLoader algorithm), and any color/icon information.
+table/tree data (used by the RuleLoader algorithm), and any state name/color/icon information.
 The .rule format is textual and consists of one or more sections.
 Each section starts with a line of the form @XXX... where X is an uppercase letter.
 If there is more than one section with the same name then only the first one is used.
@@ -734,24 +742,28 @@ all live states so you can check what the new icons look like.
 <font size=+1><b>How Golly finds .rule files</b></font>
 
 <p>
-There are two situations where Golly needs to look for a .rule file:
+When the RuleLoader algorithm needs to look for Foo.rule it uses this search procedure:
 
 <p>
-1. If the RuleLoader algorithm is asked to switch to a rule called "Foo" then it first
-looks for Foo.rule in <a href="prefs:control">your rules folder</a>.
+<ol>
+<li>
+First it looks for Foo.rule in Golly's temporary folder.  The .rule files
+in this folder are created by the RuleLoader algorithm when Golly opens
+a .rle file containing @RULE data (see <a href="#temprules">above</a>).
+<li>
+If not found, it looks for Foo.rule in <a href="prefs:control">your rules folder</a>.
+<li>
 If not found, or if Foo.rule has no @TABLE or @TREE section, it will then look
 for Foo.rule in the supplied Rules folder.
+</ol>
 
 <p>
-2. After switching to a new rule (not necessarily using RuleLoader), Golly needs
-to look for names/colors/icons specific to that rule.  A similar search procedure
+After switching to a new rule (not necessarily using RuleLoader), Golly needs
+to look for state names/colors/icons specific to that rule.  A similar search procedure
 to the one above is used again, where this time Golly looks for @NAMES or @COLORS or @ICONS
-in Foo.rule.  (Unlike the above search, if Foo.rule is found in your rules folder but
-doesn't have any of those sections then Golly will <i>not</i> look for Foo.rule in the Rules folder.)
-
-<p>
-Note that the 2nd search always occurs after clicking OK in the Control menu's Set Rule dialog,
-even if the current rule wasn't changed.  This is a quick way to test changes to a .rule file.
+in Foo.rule.  Note that this search always occurs after clicking OK in the Control menu's
+Set Rule dialog, even if the current rule wasn't changed.  This is a quick way to test
+changes to a .rule file.
 
 
 <p><a name="share"></a>&nbsp;<br>
