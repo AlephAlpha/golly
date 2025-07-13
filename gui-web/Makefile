@@ -121,7 +121,7 @@ CFLAGS = -Izlib -Wall -Wno-deprecated-non-prototype -Wno-implicit-function-decla
 
 CXXFLAGS = -Izlib -I. -I../gollybase -I../gui-common -I../gui-common/MiniZip \
     -DVERSION=4.3 -DZLIB -DWEB_GUI -Wall -Wextra -Wno-unused-parameter -Wno-deprecated \
-    -Wno-unused-but-set-variable -O2 -lglfw
+    -Wno-unused-but-set-variable -O2
 
 TARGET = golly.html
 

@@ -1031,11 +1031,18 @@ static FILE* FindRuleFile(const std::string& rulename)
 {
     const std::string extn = ".rule";
     std::string path;
+    FILE* f;
+    
+    // first look for rulename.rule in tempdir
+    path = tempdir + rulename;
+    path += extn;
+    f = fopen(path.c_str(), "r");
+    if (f) return f;
 
-    // first look for rulename.rule in userrules
+    // now look for rulename.rule in userrules
     path = userrules + rulename;
     path += extn;
-    FILE* f = fopen(path.c_str(), "r");
+    f = fopen(path.c_str(), "r");
     if (f) return f;
 
     // now look for rulename.rule in rulesdir
@@ -1067,8 +1074,7 @@ static void CheckRuleHeader(char* linebuf, const std::string& rulename)
 
 // -----------------------------------------------------------------------------
 
-static void ParseColors(linereader& reader, char* linebuf, int MAXLINELEN,
-                        int* linenum, bool* eof)
+static void ParseColors(linereader& reader, char* linebuf, int MAXLINELEN, int* linenum, bool* eof)
 {
     // parse @COLORS section in currently open .rule file
     int state, r, g, b, r1, g1, b1, r2, g2, b2;
@@ -1091,6 +1097,35 @@ static void ParseColors(linereader& reader, char* linebuf, int MAXLINELEN,
                 currlayer->cellr[state] = r;
                 currlayer->cellg[state] = g;
                 currlayer->cellb[state] = b;
+            }
+        } else if (linebuf[0] == '@') {
+            // found next section, so stop parsing
+            *eof = false;
+            return;
+        }
+        // ignore unexpected syntax (better for upward compatibility)
+    }
+    *eof = true;
+}
+
+// -----------------------------------------------------------------------------
+
+static void ParseNames(linereader& reader, char* linebuf, int MAXLINELEN, int* linenum, bool* eof)
+{
+    // parse @NAMES section in currently open .rule file
+    int state;
+    int namepos;
+    char dummy;
+    int maxstate = currlayer->algo->NumCellStates() - 1;
+    
+    while (reader.fgets(linebuf, MAXLINELEN) != 0) {
+        *linenum = *linenum + 1;
+        if (linebuf[0] == '#' || linebuf[0] == 0) {
+            // skip comment or empty line
+        } else if (sscanf(linebuf, "%d %n%c", &state, &namepos, &dummy) == 2) {
+            // ignore bad state
+            if (state >= 0 && state <= maxstate) {
+                currlayer->statenames[state] = linebuf+namepos;
             }
         } else if (linebuf[0] == '@') {
             // found next section, so stop parsing
@@ -1375,9 +1410,9 @@ static void ParseIcons(const std::string& rulename, linereader& reader, char* li
 // -----------------------------------------------------------------------------
 
 static void LoadRuleInfo(FILE* rulefile, const std::string& rulename,
-                         bool* loadedcolors, bool* loadedicons)
+                         bool* loadedcolors, bool* loadedicons, bool* loadednames)
 {
-    // load any color/icon info from currently open .rule file
+    // load any color/icon/name info from the currently open .rule file
     const int MAXLINELEN = 4095;
     char linebuf[MAXLINELEN + 1];
     int linenum = 0;
@@ -1397,7 +1432,7 @@ static void LoadRuleInfo(FILE* rulefile, const std::string& rulename,
             linenum++;
             if (linenum == 1) CheckRuleHeader(linebuf, rulename);
         }
-        // look for @COLORS or @ICONS section
+        // look for @COLORS or @ICONS or @NAMES section
         if (strcmp(linebuf, "@COLORS") == 0 && !*loadedcolors) {
             *loadedcolors = true;
             ParseColors(reader, linebuf, MAXLINELEN, &linenum, &eof);
@@ -1407,6 +1442,12 @@ static void LoadRuleInfo(FILE* rulefile, const std::string& rulename,
         } else if (strcmp(linebuf, "@ICONS") == 0 && !*loadedicons) {
             *loadedicons = true;
             ParseIcons(rulename, reader, linebuf, MAXLINELEN, &linenum, &eof);
+            if (eof) break;
+            // otherwise linebuf contains @... so skip next fgets call
+            skipget = true;
+        } else if (strcmp(linebuf, "@NAMES") == 0 && !*loadednames) {
+            *loadednames = true;
+            ParseNames(reader, linebuf, MAXLINELEN, &linenum, &eof);
             if (eof) break;
             // otherwise linebuf contains @... so skip next fgets call
             skipget = true;
@@ -1512,7 +1553,7 @@ void CreateColorGradient()
 
 void UpdateCurrentColors()
 {
-    // set current layer's colors and icons according to current algo and rule
+    // set current layer's colors, icons and state names according to current algo and rule
     AlgoData* ad = algoinfo[currlayer->algtype];
     int maxstate = currlayer->algo->NumCellStates() - 1;
 
@@ -1555,31 +1596,34 @@ void UpdateCurrentColors()
 
     // this flag will change if any icon uses a non-grayscale color
     currlayer->multicoloricons = false;
+    
+    // init state names
+    currlayer->statenames.clear();
+    for (int n = 0; n <= maxstate; n++) currlayer->statenames.push_back("");
 
     bool loadedcolors = false;
     bool loadedicons = false;
+    bool loadednames = false;
 
     // look for rulename.rule
     FILE* rulefile = FindRuleFile(rulename);
     if (rulefile) {
-        LoadRuleInfo(rulefile, rulename, &loadedcolors, &loadedicons);
-
-        if (!loadedcolors || !loadedicons) {
+        LoadRuleInfo(rulefile, rulename, &loadedcolors, &loadedicons, &loadednames);
+        if (!loadedcolors || !loadedicons || !loadednames) {
             // if rulename has the form foo-* then look for foo-shared.rule
-            // and load its colors or icons
+            // and load its colors or icons or names
             size_t hyphenpos = rulename.rfind('-');
             if (hyphenpos != std::string::npos && rulename.rfind("-shared") == std::string::npos) {
                 rulename = rulename.substr(0, hyphenpos) + "-shared";
                 rulefile = FindRuleFile(rulename);
-                if (rulefile) LoadRuleInfo(rulefile, rulename, &loadedcolors, &loadedicons);
+                if (rulefile) {
+                    LoadRuleInfo(rulefile, rulename, &loadedcolors, &loadedicons, &loadednames);
+                }
             }
         }
-        if (!loadedicons) UseDefaultIcons(maxstate);
-        
-    } else {
-        // rulename.rule wasn't found so use default icons
-        UseDefaultIcons(maxstate);
     }
+    
+    if (!loadedicons) UseDefaultIcons(maxstate);
 
     // use the smallest icons to check if they are multi-color
     if (currlayer->icons7x7) {
@@ -1780,6 +1824,8 @@ Layer::Layer()
     atlas7x7 = NULL;            // no texture atlas for 7x7 icons
     atlas15x15 = NULL;          // no texture atlas for 15x15 icons
     atlas31x31 = NULL;          // no texture atlas for 31x31 icons
+    
+    statenames.clear();         // no names for cell states
 
     currframe = 0;              // first frame in timeline
     autoplay = 0;               // not playing
@@ -1908,6 +1954,7 @@ Layer::Layer()
             showhashinfo = currlayer->showhashinfo;
             originx = currlayer->originx;
             originy = currlayer->originy;
+            statenames = currlayer->statenames;
 
             // duplicate selection info
             currsel = currlayer->currsel;
@@ -2012,5 +2059,6 @@ Layer::~Layer()
 
         // delete any icons
         DeleteIcons(this);
+        statenames.clear();
     }
 }

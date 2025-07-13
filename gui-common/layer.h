@@ -4,6 +4,9 @@
 #ifndef _LAYER_H_
 #define _LAYER_H_
 
+#include <vector>           // for std::vector
+#include <string>           // for std::string
+
 #include "bigint.h"         // for bigint class
 #include "viewport.h"       // for viewport class
 
@@ -104,6 +107,9 @@ public:
     
     int numicons;                 // number of icons (= number of live states)
     bool multicoloricons;         // are icons multi-colored? (grayscale if not)
+    
+    // names of cell states (if .rule file has @NAMES)
+    std::vector<std::string> statenames;
 
     // used if the layer has a timeline
     int currframe;                // current frame in timeline

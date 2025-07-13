@@ -339,6 +339,10 @@ public:
     virtual const char* getrulesdir() {
         return (const char*) rulesdir.c_str();
     }
+
+    virtual const char* gettempdir() {
+        return (const char*) tempdir.c_str();
+    }
 };
 
 static my_errors myerrhandler;    // create instance
