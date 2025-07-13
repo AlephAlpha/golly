@@ -2,7 +2,7 @@
 # Type "emmake make" to build golly.html, golly.js, golly.data, golly.wasm.
 # 
 # To test webGolly in Chrome/Firefox:
-# in Terminal: python -m SimpleHTTPServer 8888
+# in Terminal: python -m SimpleHTTPServer 8888  or  python3 -m http.server 8888
 # in browser: localhost:8888/golly.html
 
 SOURCES = \

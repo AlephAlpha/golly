@@ -38,7 +38,7 @@ const char* large_rule_prefix =  "    Rule=";
 const char* large_pop_prefix =   "    Population=";
 const char* large_scale_prefix = "    Scale=";
 const char* large_step_prefix =  "    ";
-const char* large_xy_prefix =    "    XY=";
+const char* large_xy_prefix =    "    XY";
 
 // prefixes used when widescreen is false:
 const char* small_gen_prefix =   "Gen=";
@@ -47,9 +47,10 @@ const char* small_rule_prefix =  "   Rule=";
 const char* small_pop_prefix =   "   Pop=";
 const char* small_scale_prefix = "   Scale=";
 const char* small_step_prefix =  "   ";
-const char* small_xy_prefix =    "   XY=";
+const char* small_xy_prefix =    "   XY";
 
-static bigint currx, curry;     // cursor location in cell coords
+static bigint currx, curry;     // cursor's XY location in cell coords
+static int currstate = -1;      // cell state at XY location
 static bool showxy = false;     // show cursor's XY location?
 
 // -----------------------------------------------------------------------------
@@ -118,6 +119,7 @@ void UpdateStatusLines()
     status2 += widescreen ? large_step_prefix : small_step_prefix;
     status2 += stepstr;
     status2 += widescreen ? large_xy_prefix : small_xy_prefix;
+    status2 += showxystate ? "S=" : "=";
     #ifdef WEB_GUI
         // in web app we show the cursor's current cell location,
         // or nothing if the cursor is outside the viewport (ie. showxy is false)
@@ -134,6 +136,20 @@ void UpdateStatusLines()
             status2 += Stringify(xpos);
             status2 += " ";
             status2 += Stringify(ypos);
+            if (showxystate) {
+                if (currstate < 0) {
+                    // currx,curry is outside editable boundary
+                    status2 += " ?";
+                } else {
+                    char statebuf[8];
+                    sprintf(statebuf, " %d", currstate);
+                    status2 += statebuf;
+                    if (currlayer->statenames.size() > 0 && currlayer->statenames[currstate].length() > 0) {
+                        status2 += " ";
+                        status2 += currlayer->statenames[currstate];
+                    }
+                }
+            }
         }
     #else
         // in iOS and Android apps we show location of the cell in middle of viewport
@@ -237,10 +253,25 @@ void CheckMouseLocation(int x, int y)
     }
 
     if (mouse_in_grid) {
-        if ( xpos != currx || ypos != curry ) {
+        int newstate;
+        if (showxystate) {
+            if (currlayer->algo->isEmpty()) {
+                newstate = 0;
+            } else if ( xpos < bigint::min_coord || ypos < bigint::min_coord ||
+                        xpos > bigint::max_coord || ypos > bigint::max_coord ) {
+                // outside editable boundary so we'll display "?" for the state
+                newstate = -1;
+            } else {
+                newstate = currlayer->algo->getcell(xpos.toint(), ypos.toint());
+            }
+        } else {
+            newstate = currstate;
+        }
+        if ( xpos != currx || ypos != curry || newstate != currstate ) {
             // show new XY location
             currx = xpos;
             curry = ypos;
+            currstate = newstate;
             showxy = true;
             UpdateStatus();
         } else if (!showxy) {

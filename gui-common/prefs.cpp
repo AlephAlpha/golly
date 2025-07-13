@@ -51,6 +51,7 @@ char initrule[256] = "B3/S23";      // initial rule
 bool initautofit = false;           // initial autofit setting
 bool inithyperspeed = false;        // initial hyperspeed setting
 bool initshowhashinfo = false;      // initial showhashinfo setting
+bool autostop = false;              // automatically stop generating if pattern dies?
 bool savexrle = true;               // save RLE file using XRLE format?
 bool showtool = true;               // show tool bar?
 bool showlayer = false;             // show layer bar?
@@ -58,6 +59,7 @@ bool showedit = true;               // show edit bar?
 bool showallstates = false;         // show all cell states in edit bar?
 bool showstatus = true;             // show status bar?
 bool showexact = false;             // show exact numbers in status bar?
+bool showxystate = false;           // show state of cell at XY location?
 bool showtimeline = false;          // show timeline bar?
 bool showtiming = false;            // show timing messages?
 bool showgridlines = true;          // display grid lines?
@@ -180,6 +182,7 @@ void SavePrefs()
     fprintf(f, "auto_fit=%d\n", currlayer->autofit ? 1 : 0);
     fprintf(f, "hyperspeed=%d\n", currlayer->hyperspeed ? 1 : 0);
     fprintf(f, "hash_info=%d\n", currlayer->showhashinfo ? 1 : 0);
+    fprintf(f, "autostop=%d\n", autostop ? 1 : 0);
     fprintf(f, "max_hash_mem=%d\n", maxhashmem);
     fprintf(f, "wheel_sens=%d\n", wheelsens);
 
@@ -217,6 +220,7 @@ void SavePrefs()
     fprintf(f, "show_states=%d\n", showallstates ? 1 : 0);
     fprintf(f, "show_status=%d\n", showstatus ? 1 : 0);
     fprintf(f, "show_exact=%d\n", showexact ? 1 : 0);
+    fprintf(f, "show_xystate=%d\n", showxystate ? 1 : 0);
     fprintf(f, "show_timeline=%d\n", showtimeline ? 1 : 0);
     fprintf(f, "show_timing=%d\n", showtiming ? 1 : 0);
     fprintf(f, "grid_lines=%d\n", showgridlines ? 1 : 0);
@@ -483,6 +487,9 @@ void GetPrefs()
         } else if (strcmp(keyword, "hash_info") == 0) {
             initshowhashinfo = value[0] == '1';
 
+        } else if (strcmp(keyword, "autostop") == 0) {
+            autostop = value[0] == '1';
+
         } else if (strcmp(keyword, "max_hash_mem") == 0) {
             sscanf(value, "%d", &maxhashmem);
             if (maxhashmem < MIN_MEM_MB) maxhashmem = MIN_MEM_MB;
@@ -513,6 +520,9 @@ void GetPrefs()
 
         } else if (strcmp(keyword, "show_exact") == 0) {
             showexact = value[0] == '1';
+
+        } else if (strcmp(keyword, "show_xystate") == 0) {
+            showxystate = value[0] == '1';
 
         } else if (strcmp(keyword, "show_timeline") == 0) {
             showtimeline = value[0] == '1';

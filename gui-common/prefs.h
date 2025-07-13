@@ -49,6 +49,7 @@ extern char initrule[];             // initial rule
 extern bool initautofit;            // initial autofit setting
 extern bool inithyperspeed;         // initial hyperspeed setting
 extern bool initshowhashinfo;       // initial showhashinfo setting
+extern bool autostop;               // automatically stop generating if pattern dies?
 extern bool savexrle;               // save RLE file using XRLE format?
 extern bool showtool;               // show tool bar?
 extern bool showlayer;              // show layer bar?
@@ -56,6 +57,7 @@ extern bool showedit;               // show edit bar?
 extern bool showallstates;          // show all cell states in edit bar?
 extern bool showstatus;             // show status bar?
 extern bool showexact;              // show exact numbers in status bar?
+extern bool showxystate;            // show state of cell at XY location?
 extern bool showtimeline;           // show timeline bar?
 extern bool showtiming;             // show timing messages?
 extern bool showgridlines;          // display grid lines?

@@ -13,6 +13,7 @@ Here are the important file formats used by Golly:
 <dd>&nbsp;&nbsp;&nbsp;&nbsp; <a href="#rulename"><b>@RULE</b></a></dd>
 <dd>&nbsp;&nbsp;&nbsp;&nbsp; <a href="#table"><b>@TABLE</b></a></dd>
 <dd>&nbsp;&nbsp;&nbsp;&nbsp; <a href="#tree"><b>@TREE</b></a></dd>
+<dd>&nbsp;&nbsp;&nbsp;&nbsp; <a href="#names"><b>@NAMES</b></a></dd>
 <dd>&nbsp;&nbsp;&nbsp;&nbsp; <a href="#colors"><b>@COLORS</b></a></dd>
 <dd>&nbsp;&nbsp;&nbsp;&nbsp; <a href="#icons"><b>@ICONS</b></a></dd>
 <dd>&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; <a href="#xpm"><b>Specifying icons using XPM</b></a></dd>
@@ -435,6 +436,25 @@ be the single node at depth num_neighbors+1, must be the last node
 defined in the file.
 
 
+<p><a name="names"></a>&nbsp;<br>
+<font size=+1><b>@NAMES</b></font>
+
+<p>
+This section is optional and can be used to specify names for
+one or more states using lines like these from
+<a href="edit:Rules/WireWorld.rule">WireWorld.rule</a>:
+
+<dd><table border=0><pre>
+0 empty
+1 electron head
+2 electron tail
+3 copper wire</pre></table></dd>
+
+<p>
+Golly silently ignores any invalid states.
+Blank lines or lines starting with "#" are ignored.
+
+
 <p><a name="colors"></a>
 <font size=+1><b>@COLORS</b></font>
 
@@ -606,25 +626,30 @@ on a line by itself:
 </ul>
 
 
-<p><a name="find"></a>
+<p><a name="find"></a>&nbsp;<br>
 <font size=+1><b>How Golly finds .rule files</b></font>
 
 <p>
-There are two situations where Golly needs to look for a .rule file:
+When the RuleLoader algorithm needs to look for Foo.rule it uses this search procedure:
 
 <p>
-1. If the RuleLoader algorithm is asked to switch to a rule called "Foo" then it first
-looks for Foo.rule in Documents/Rules/.
+<ol>
+<li>
+First it looks for Foo.rule in Golly's temporary folder.  The .rule files
+in this folder are created by the RuleLoader algorithm when Golly opens
+a .rle file containing @RULE data.
+<li>
+If not found, it looks for Foo.rule in Documents/Rules/.
+<li>
 If not found, or if Foo.rule has no @TABLE or @TREE section, it will then look
 for Foo.rule in the supplied Rules folder.
+</ol>
 
 <p>
-2. After switching to a new rule (not necessarily using RuleLoader), Golly needs
-to look for color and/or icon information specific to that rule.  A similar search procedure
-to the one above is used again, where this time Golly looks for any @COLORS and/or @ICONS
-sections in Foo.rule.  (Unlike the above search, if Foo.rule is found in Documents/Rules/ but
-doesn't have any color/icon info then Golly will <i>not</i> look for Foo.rule in the
-supplied Rules folder.)
+After switching to a new rule (not necessarily using RuleLoader), Golly needs
+to look for state names/colors/icons specific to that rule.  A similar search procedure
+to the one above is used again, where this time Golly looks for @NAMES or @COLORS or @ICONS
+in Foo.rule.
 
 
 <p><a name="share"></a>

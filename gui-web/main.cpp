@@ -1447,6 +1447,7 @@ void UpdateMenuItems(const char* id)
         } else {
             EM_ASM( document.getElementById('view_fits').className = 'item_disabled'; );
         }
+        jsTickMenuItem("view_xys", showxystate);
         jsTickMenuItem("view_grid", showgridlines);
         jsTickMenuItem("view_icons", showicons);
         if (currlayer->currfile.length() > 0) {
@@ -1548,6 +1549,7 @@ void DoMenuItem(const char* id)
     if (item == "scale3") SetScale(3); else
     if (item == "scale4") SetScale(4); else
     if (item == "scale5") SetScale(5); else
+    if (item == "view_xys") { showxystate = !showxystate; UpdateStatus(); } else
     if (item == "view_grid") ToggleGrid(); else
     if (item == "view_icons") ToggleIcons(); else
     if (item == "view_info") Info(); else
