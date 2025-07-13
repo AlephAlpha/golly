@@ -1431,6 +1431,7 @@ void UpdateMenuItems(const char* id)
         jsTickMenuItem("control_autofit", currlayer->autofit);
         jsTickMenuItem("control_hash", currlayer->showhashinfo);
         jsTickMenuItem("control_timing", showtiming);
+        jsTickMenuItem("control_autostop", autostop);
     
     } else if (menu == "Algo_menu") {
         jsTickMenuItem("algo0", currlayer->algtype == 0);
@@ -1528,6 +1529,7 @@ void DoMenuItem(const char* id)
     if (item == "control_autofit") ToggleAutoFit(); else
     if (item == "control_hash") ToggleHashInfo(); else
     if (item == "control_timing") ToggleTiming(); else
+    if (item == "control_autostop") autostop = !autostop; else
     if (item == "algo0") SetAlgo(0); else
     if (item == "algo1") SetAlgo(1); else
     if (item == "algo2") SetAlgo(2); else
@@ -1935,6 +1937,15 @@ static void DoFrame()
         } else {
             NextGeneration(true);
             UpdatePatternAndStatus();
+        }
+        if (autostop && currlayer->algo->isEmpty()) {
+            StopIfGenerating();
+            if (currlayer->currexpo > 0) {
+                SetMessage("Pattern died at or before this generation.");
+            } else {
+                SetMessage("Pattern died at this generation.");
+            }
+            UpdateStatus();
         }
     }
     
