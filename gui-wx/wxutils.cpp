@@ -16,6 +16,7 @@
 #include "wxscript.h"      // for inscript, showprogress, PassKeyToScript
 #include "wxprefs.h"       // for allowbeep
 #include "wxutils.h"
+#include <random>
 
 // -----------------------------------------------------------------------------
 
@@ -643,4 +644,15 @@ bool IsRuleFile(const wxString& filename)
     // if filename has no extension then ext == filename
     if (ext == filename) return false;
     return ( ext.IsSameAs(wxT("rule"),false) );
+}
+
+// -----------------------------------------------------------------------------
+
+int golly_rand()
+{
+   static std::random_device dev;
+   static std::mt19937 rng(dev());
+   static std::uniform_int_distribution<std::mt19937::result_type>
+                                                      dist31(0,0x7fffffff);
+   return dist31(rng);
 }

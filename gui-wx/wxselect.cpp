@@ -11,7 +11,7 @@
 #include "viewport.h"
 
 #include "wxgolly.h"       // for wxGetApp, mainptr, viewptr, statusptr, insideYield
-#include "wxutils.h"       // for Warning
+#include "wxutils.h"       // for Warning, golly_random
 #include "wxprefs.h"       // for randomfill, etc
 #include "wxmain.h"        // for mainptr->...
 #include "wxstatus.h"      // for statusptr->...
@@ -1630,8 +1630,8 @@ void Selection::RandomFill()
             if (savecells) {
                 // remember cell change only if state changes
                 int oldstate = curralgo->getcell(cx, cy);
-                if ((rand() % 100) < randomfill) {
-                    int newstate = livestates < 2 ? 1 : 1 + (rand() % livestates);
+                if ((golly_rand() % 100) < randomfill) {
+                    int newstate = livestates < 2 ? 1 : 1 + (golly_rand() % livestates);
                     if (oldstate != newstate) {
                         curralgo->setcell(cx, cy, newstate);
                         currlayer->undoredo->SaveCellChange(cx, cy, oldstate, newstate);
@@ -1641,11 +1641,11 @@ void Selection::RandomFill()
                     currlayer->undoredo->SaveCellChange(cx, cy, oldstate, 0);
                 }
             } else {
-                if ((rand() % 100) < randomfill) {
+                if ((golly_rand() % 100) < randomfill) {
                     if (livestates < 2) {
                         curralgo->setcell(cx, cy, 1);
                     } else {
-                        curralgo->setcell(cx, cy, 1 + (rand() % livestates));
+                        curralgo->setcell(cx, cy, 1 + (golly_rand() % livestates));
                     }
                 } else if (killcells) {
                     curralgo->setcell(cx, cy, 0);

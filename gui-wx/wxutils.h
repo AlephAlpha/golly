@@ -83,6 +83,9 @@ bool IsZipFile(const wxString& filename);
 bool IsRuleFile(const wxString& filename);
 // Return true if the given file's extension is .rule (ignoring case).
 
+int golly_rand();
+// Return a random int with 31 bits of randomness.
+
 // Following macro is used to create a wxBitmap from included XPM data:
 
 #define XPM_BITMAP(name) wxBitmap(name##_xpm)

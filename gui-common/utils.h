@@ -96,4 +96,7 @@ extern int event_checker;
 // Poller is used by gollybase modules to process events.
 // If event_checker > 0 then we've been called from the event checking code.
 
+int golly_rand();
+// Return a random int with 31 bits of randomness.
+
 #endif

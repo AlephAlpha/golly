@@ -4,6 +4,7 @@
 #include <sys/time.h>   // for gettimeofday
 #include <algorithm>    // for std::transform
 #include <ctype.h>      // for tolower
+#include <random>
 
 #include "lifepoll.h"   // for lifepoll
 #include "util.h"       // for linereader
@@ -496,3 +497,14 @@ void PollerInterrupt()
 {
     gollypoller.setInterrupted();
 }
+
+// -----------------------------------------------------------------------------
+
+int golly_rand()
+{
+   static std::random_device dev;
+   static std::mt19937 rng(dev());
+   static std::uniform_int_distribution<std::mt19937::result_type>
+                                                      dist31(0,0x7fffffff);
+   return dist31(rng);
+}   
