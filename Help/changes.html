@@ -22,6 +22,9 @@
      For example, open
      <a href="open:Patterns/Other-Rules/calcyman-primer.rle">calcyman-primer.rle</a>.
 <li> Added "-" and "+" buttons to the help window for changing the text size.
+<li> Golly now uses C++11's Mersenne Twister for randomly filling a selection, rather than rand(),
+     since rand() has a somewhat low period (about 2^31 or 2^32 on various platforms).
+<li> Fixed slow scrolling at some scales when using arrow keys.
 <li> Fixed Control > Reset being called via a keyboard shortcut while the mouse is drawing or selecting cells.
 <li> Fixed cosmetic problems with the state boxes and directory icons in the macOS app.
 <li> Fixed a problem with the About dialog in the macOS app.
