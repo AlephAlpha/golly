@@ -1548,12 +1548,12 @@ int PatternView::SmallScroll(int xysize)
     int mag = currlayer->view->getmag();
     if (mag > 0) {
         // scroll an integral number of cells (1 cell = 2^mag pixels)
-        if (mag < 3) {
+        if (mag < 5) {
             amount = ((xysize >> mag) / 20) << mag;
             if (amount == 0) amount = 1 << mag;
             return amount;
         } else {
-            // grid lines are visible so scroll by only 1 cell
+            // zoomed right in so scroll by only 1 cell
             return 1 << mag;
         }
     } else {
