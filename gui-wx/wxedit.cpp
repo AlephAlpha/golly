@@ -63,16 +63,8 @@ enum {
 #include "bitmaps/allstates_down.xpm"
 
 // width and height of bitmap buttons
-#if defined(__WXOSX_COCOA__) && wxCHECK_VERSION(3,0,0)
-    const int BUTTON_WD = 24;
-    const int BUTTON_HT = 24;
-#elif defined(__WXOSX_COCOA__) || defined(__WXGTK__)
-    const int BUTTON_WD = 28;
-    const int BUTTON_HT = 28;
-#else
-    const int BUTTON_WD = 24;
-    const int BUTTON_HT = 24;
-#endif
+const int BUTTON_WD = 24;
+const int BUTTON_HT = 24;
 
 // -----------------------------------------------------------------------------
 
@@ -240,16 +232,9 @@ EditBar::EditBar(wxWindow* parent, wxCoord xorg, wxCoord yorg, int wd, int ht)
     }
     
     // init position variables used by AddButton and AddSeparator
-#ifdef __WXGTK__
-    // buttons are a different size in wxGTK
-    xpos = 2;
-    ypos = 2;
-    smallgap = 6;
-#else
     xpos = 4;
     ypos = (32 - BUTTON_HT) / 2;
     smallgap = 4;
-#endif
     biggap = 16;
     
     // add buttons
@@ -765,12 +750,7 @@ void EditBar::OnButtonUp(wxMouseEvent& event)
 void EditBar::AddButton(int id, const wxString& tip)
 {
     ebbutt[id] = new wxBitmapButton(this, id, normbutt[id], wxPoint(xpos,ypos),
-#if defined(__WXOSX_COCOA__) && wxCHECK_VERSION(3,0,0)
-                                    wxSize(BUTTON_WD, BUTTON_HT), wxBORDER_SIMPLE
-#else
-                                    wxSize(BUTTON_WD, BUTTON_HT)
-#endif
-                                    );
+                                    wxSize(BUTTON_WD, BUTTON_HT), wxBORDER_NONE);
     if (ebbutt[id] == NULL) {
         Fatal(_("Failed to create edit bar button!"));
     } else {
