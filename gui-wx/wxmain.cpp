@@ -158,12 +158,23 @@ END_EVENT_TABLE()
 ToolBar* toolbarptr = NULL;      // global pointer to tool bar
 const int TOOLBARWD = 32;        // width of (vertical) tool bar
 
-// width and height of bitmap buttons
-const int BUTTON_WD = 24;
-const int BUTTON_HT = 24;
-
 // tool bar buttons (must be global to use Connect/Disconnect on Windows)
 wxBitmapButton* tbbutt[NUM_BUTTONS];
+
+// width and height of bitmap buttons
+#if defined(__WXOSX_COCOA__) && wxCHECK_VERSION(3,0,0)
+    // note that BUTTON_WD will have to be at least 26 to avoid clipping bitmaps
+    // if we decide to use wxBORDER_SUNKEN rather than wxBORDER_SIMPLE
+    // (and TOOLBARWD will probably need to be increased to 48)
+    const int BUTTON_WD = 24;
+    const int BUTTON_HT = 24;
+#elif defined(__WXOSX_COCOA__) || defined(__WXGTK__)
+    const int BUTTON_WD = 28;
+    const int BUTTON_HT = 28;
+#else
+    const int BUTTON_WD = 24;
+    const int BUTTON_HT = 24;
+#endif
 
 // -----------------------------------------------------------------------------
 
@@ -209,9 +220,16 @@ ToolBar::ToolBar(wxWindow* parent, wxCoord xorg, wxCoord yorg, int wd, int ht)
     }
     
     // init position variables used by AddButton and AddSeparator
-    xpos = (TOOLBARWD - BUTTON_WD) / 2;
-    ypos = (TOOLBARWD - BUTTON_HT) / 2;
+#ifdef __WXGTK__
+    // buttons are a different size in wxGTK
+    xpos = 2;
+    ypos = 2;
+    smallgap = 6;
+#else
+    xpos = (32 - BUTTON_WD) / 2;
+    ypos = (32 - BUTTON_HT) / 2;
     smallgap = 4;
+#endif
     biggap = 16;
 }
 
@@ -371,7 +389,12 @@ void ToolBar::OnButtonUp(wxMouseEvent& event)
 void ToolBar::AddButton(int id, const wxString& tip)
 {
     tbbutt[id] = new wxBitmapButton(this, id, normtool[id], wxPoint(xpos,ypos),
-                                    wxSize(BUTTON_WD, BUTTON_HT), wxBORDER_NONE);
+#if defined(__WXOSX_COCOA__) && wxCHECK_VERSION(3,0,0)
+                                    wxSize(BUTTON_WD, BUTTON_HT), wxBORDER_SIMPLE
+#else
+                                    wxSize(BUTTON_WD, BUTTON_HT)
+#endif
+                                    );
     if (tbbutt[id] == NULL) {
         Fatal(_("Failed to create tool bar button!"));
     } else {

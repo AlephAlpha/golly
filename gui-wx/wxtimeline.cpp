@@ -138,8 +138,16 @@ const int MINSPEED = -10;              // minimum autoplay speed
 const int MAXSPEED = 10;               // maximum autoplay speed
 
 // width and height of bitmap buttons
-const int BUTTON_WD = 24;
-const int BUTTON_HT = 24;
+#if defined(__WXOSX_COCOA__) && wxCHECK_VERSION(3,0,0)
+    const int BUTTON_WD = 24;
+    const int BUTTON_HT = 24;
+#elif defined(__WXOSX_COCOA__) || defined(__WXGTK__)
+    const int BUTTON_WD = 28;
+    const int BUTTON_HT = 28;
+#else
+    const int BUTTON_WD = 24;
+    const int BUTTON_HT = 24;
+#endif
 
 // timeline bar buttons (must be global to use Connect/Disconnect on Windows)
 static wxBitmapButton* tlbutt[NUM_BUTTONS];
@@ -181,9 +189,16 @@ TimelineBar::TimelineBar(wxWindow* parent, wxCoord xorg, wxCoord yorg, int wd, i
     }
     
     // init position variables used by AddButton and AddSeparator
+#ifdef __WXGTK__
+    // buttons are a different size in wxGTK
+    xpos = 2;
+    ypos = 2;
+    smallgap = 6;
+#else
     xpos = 4;
     ypos = (32 - BUTTON_HT) / 2;
     smallgap = 4;
+#endif
     biggap = 16;
     
     // add buttons
@@ -596,7 +611,12 @@ void TimelineBar::OnButtonUp(wxMouseEvent& event)
 void TimelineBar::AddButton(int id, const wxString& tip)
 {
     tlbutt[id] = new wxBitmapButton(this, id, normbutt[id], wxPoint(xpos,ypos),
-                                    wxSize(BUTTON_WD, BUTTON_HT), wxBORDER_NONE);
+#if defined(__WXOSX_COCOA__) && wxCHECK_VERSION(3,0,0)
+                                    wxSize(BUTTON_WD, BUTTON_HT), wxBORDER_SIMPLE
+#else
+                                    wxSize(BUTTON_WD, BUTTON_HT)
+#endif
+                                    );
     if (tlbutt[id] == NULL) {
         Fatal(_("Failed to create timeline bar button!"));
     } else {
