@@ -1670,7 +1670,7 @@ void PatternView::ProcessKey(int key, int modifiers)
         case DO_RUNCLIP:     if (!inscript && !timeline && !busy) mainptr->RunClipboard(); break;
         case DO_RUNRECENT:   if (!inscript && !timeline && !busy) mainptr->OpenRecentScript(ID_RUN_RECENT+1); break;
         case DO_PREFS:       if (!busy) mainptr->ShowPrefsDialog(); break;
-        case DO_FILEDIR:     if (!busy) mainptr->ChangeFileDir(); break;
+        case DO_SETFOLDER:   if (!busy) mainptr->SetFolder(); break;
         case DO_SHOWFILES:   mainptr->ToggleShowFiles(); break;
         case DO_QUIT:        mainptr->QuitApp(); break;
             

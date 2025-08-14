@@ -54,8 +54,12 @@ public:
     void OpenRecentPattern(int id);
     void OpenRecentScript(int id);
     void ToggleShowFiles();
-    void ChangeFileDir();
     void SetFileDir(const wxString& newdir);
+    void SetFolder();
+    void AddFolder();
+    void RemoveFolder();
+    void AppendDir(const wxString& indir, wxTreeCtrl* treectrl, wxTreeItemId root);
+    void BuildTree();
     bool SavePattern();
     bool SaveCurrentLayer();
     const char* SaveFile(const wxString& path, const wxString& format, bool remember);
@@ -200,7 +204,6 @@ private:
     void CreateMenus();
     void CreateToolbar();
     void CreateDirControl();
-    void SimplifyTree(wxString& dir, wxTreeCtrl* treectrl, wxTreeItemId root);
     void DoPendingAction(bool restart);
     
     // splittable window contains file directory in left pane
@@ -233,7 +236,9 @@ enum {
     ID_CLEAR_MISSING_SCRIPTS = ID_RUN_RECENT + MAX_RECENT + 1,
     ID_CLEAR_ALL_SCRIPTS,
     ID_SHOW_FILES,
-    ID_FILE_DIR,
+    ID_SET_FOLDER,
+    ID_ADD_FOLDER,
+    ID_REMOVE_FOLDER,
     // wxID_PREFERENCES,
     // wxID_EXIT,
     

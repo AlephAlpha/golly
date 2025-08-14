@@ -32,6 +32,10 @@ extern wxString tempdir;         // path of directory for temporary data
 extern wxString rulesdir;        // path of directory for app's rule data
 extern wxString userrules;       // path of directory for user's rule data
 extern wxString downloaddir;     // path of directory for downloaded data
+extern wxString userdir;         // path of directory added by user
+
+// userdir is initially set to this illegal directory path (can't be "")
+const wxString baddir = wxT(":\\/:");
 
 extern int debuglevel;           // for displaying debug info if > 0
 
@@ -217,7 +221,7 @@ typedef enum {
     DO_SW,                        // scroll SW
     DO_SELALL,                    // select all
     DO_SETBASE,                   // set base step...
-    DO_FILEDIR,                   // set file folder...
+    DO_SETFOLDER,                 // set folder...
     DO_SETGEN,                    // set generation...
     DO_SETCOLORS,                 // set layer colors...
     DO_SETRULE,                   // set rule...

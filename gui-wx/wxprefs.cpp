@@ -70,6 +70,7 @@ wxString tempdir;                // path of directory for temporary data
 wxString rulesdir;               // path of directory for app's rule data
 wxString userrules;              // path of directory for user's rule data
 wxString downloaddir;            // path of directory for downloaded data
+wxString userdir;                // path of directory added by user
 
 int debuglevel = 0;              // for displaying debug info if > 0
 
@@ -536,7 +537,7 @@ const char* GetActionName(action_id action)
         case DO_OPENCLIP:       return "Open Clipboard";
         case DO_OPENRECENT:     return "Open Recent Pattern";
         case DO_SHOWFILES:      return "Show Files";
-        case DO_FILEDIR:        return "Set File Folder...";
+        case DO_SETFOLDER:      return "Set Folder...";
         case DO_SAVE:           return "Save Pattern...";
         case DO_SAVEXRLE:       return "Save Extended RLE";
         case DO_RUNSCRIPT:      return "Run Script...";
@@ -1605,6 +1606,7 @@ void SavePrefs()
     SaveRelPath(f, "file_dir", filedir);
     SaveRelPath(f, "user_rules", userrules);
     SaveRelPath(f, "download_dir", downloaddir);
+    SaveRelPath(f, "user_dir", userdir);
 
     fputs("\n", f);
 
@@ -1819,6 +1821,7 @@ void GetPrefs()
     choosedir = gollydir;
     filedir = gollydir;
     overlaydir = datadir;
+    userdir = baddir;                   // initially an illegal dir path
 
     // init the text editor to something reasonable
 #ifdef __WXMSW__
@@ -2281,6 +2284,7 @@ void GetPrefs()
         } else if (strcmp(keyword, "pattern_dir") == 0)   { GetRelPath(value, filedir);     // deprecated
         } else if (strcmp(keyword, "user_rules") == 0)    { GetRelPath(value, userrules);
         } else if (strcmp(keyword, "download_dir") == 0)  { GetRelPath(value, downloaddir);
+        } else if (strcmp(keyword, "user_dir") == 0)      { GetRelPath(value, userdir, baddir);
 
         } else if (strcmp(keyword, "text_editor") == 0) {
             texteditor = wxString(value,wxConvLocal);

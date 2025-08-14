@@ -604,8 +604,10 @@ void MainFrame::UpdateMenuItems()
         mbar->Enable(ID_RUN_CLIP,        active && !timeline && !inscript && textinclip);
         mbar->Enable(ID_RUN_RECENT,      active && !timeline && !inscript && numscripts > 0);
         mbar->Enable(ID_SHOW_FILES,      active);
-        mbar->Enable(ID_FILE_DIR,        active);
-        // safer not to allow prefs dialog while script is running???
+        mbar->Enable(ID_SET_FOLDER,      active);
+        mbar->Enable(ID_ADD_FOLDER,      active);
+        mbar->Enable(ID_REMOVE_FOLDER,   active && userdir != baddir);
+        // safer not to allow prefs dialog while script is running
         // mbar->Enable(wxID_PREFERENCES,   !inscript);
         
         bool can_undo = active && !timeline && currlayer->undoredo->CanUndo();
@@ -864,41 +866,6 @@ void MainFrame::UpdateStatus()
             statusptr->Refresh(false);
         }
     }
-}
-
-// -----------------------------------------------------------------------------
-
-void MainFrame::SimplifyTree(wxString& indir, wxTreeCtrl* treectrl, wxTreeItemId root)
-{
-    // delete old tree (except root)
-    treectrl->DeleteChildren(root);
-    
-    // remove any terminating separator
-    wxString dir = indir;
-    if (dir.Last() == wxFILE_SEP_PATH) dir.Truncate(dir.Length()-1);
-    
-    // append dir as only child
-    wxDirItemData* diritem = new wxDirItemData(dir, dir, true);
-    wxTreeItemId id;
-    id = treectrl->AppendItem(root, dir.AfterLast(wxFILE_SEP_PATH), 0, 0, diritem);
-    if ( diritem->HasFiles() || diritem->HasSubDirs() ) {
-        treectrl->SetItemHasChildren(id);
-        treectrl->Expand(id);
-        #ifndef __WXMSW__
-            // can cause crash on Windows
-            treectrl->ScrollTo(root);
-        #endif
-    }
-        
-    // select top folder so hitting left arrow can collapse it and won't cause an assert
-    wxTreeItemIdValue cookie;
-    id = treectrl->GetFirstChild(root, cookie);
-    if (id.IsOk()) treectrl->SelectItem(id);
-    
-    #if defined(__WXMAC__) && wxCHECK_VERSION(3,1,3)
-        // wxTR_HIDE_ROOT is needed to hide the "Sections" directory
-        treectrl->SetWindowStyle(wxTR_DEFAULT_STYLE | wxTR_HIDE_ROOT);
-    #endif
 }
 
 // -----------------------------------------------------------------------------
@@ -1337,7 +1304,9 @@ void MainFrame::OnMenu(wxCommandEvent& event)
         case ID_RUN_SCRIPT:     OpenScript(); break;
         case ID_RUN_CLIP:       RunClipboard(); break;
         case ID_SHOW_FILES:     ToggleShowFiles(); break;
-        case ID_FILE_DIR:       ChangeFileDir(); break;
+        case ID_SET_FOLDER:     SetFolder(); break;
+        case ID_ADD_FOLDER:     AddFolder(); break;
+        case ID_REMOVE_FOLDER:  RemoveFolder(); break;
         case wxID_PREFERENCES:  ShowPrefsDialog(); break;
         case wxID_EXIT:         QuitApp(); break;
             
@@ -2208,7 +2177,9 @@ void MainFrame::CreateMenus()
     fileMenu->Append(ID_RUN_RECENT,              _("Run Recent"), scriptSubMenu);
     fileMenu->AppendSeparator();
     fileMenu->AppendCheckItem(ID_SHOW_FILES,     _("Show Files") + GetAccelerator(DO_SHOWFILES));
-    fileMenu->Append(ID_FILE_DIR,                _("Set File Folder...") + GetAccelerator(DO_FILEDIR));
+    fileMenu->Append(ID_SET_FOLDER,              _("Set Folder...") + GetAccelerator(DO_SETFOLDER));
+    fileMenu->Append(ID_ADD_FOLDER,              _("Add Folder..."));
+    fileMenu->Append(ID_REMOVE_FOLDER,           _("Remove Folder"));
 #if !defined(__WXOSX_COCOA__)
     fileMenu->AppendSeparator();
 #endif
@@ -2432,7 +2403,7 @@ void MainFrame::UpdateMenuAccelerators()
         SetAccelerator(mbar, ID_RUN_SCRIPT,      DO_RUNSCRIPT);
         SetAccelerator(mbar, ID_RUN_CLIP,        DO_RUNCLIP);
         SetAccelerator(mbar, ID_SHOW_FILES,      DO_SHOWFILES);
-        SetAccelerator(mbar, ID_FILE_DIR,        DO_FILEDIR);
+        SetAccelerator(mbar, ID_SET_FOLDER,      DO_SETFOLDER);
         
         SetAccelerator(mbar, ID_UNDO,            DO_UNDO);
         SetAccelerator(mbar, ID_REDO,            DO_REDO);
@@ -2511,6 +2482,78 @@ void MainFrame::UpdateMenuAccelerators()
 
 // -----------------------------------------------------------------------------
 
+void MainFrame::AddFolder()
+{
+    if (!showfiles) ToggleShowFiles();
+    wxDirDialog dirdlg(this, _("Choose a folder with your patterns/rules/scripts"),
+                       userdir, wxDD_NEW_DIR_BUTTON);
+    if (dirdlg.ShowModal() == wxID_OK) {
+        userdir = dirdlg.GetPath();
+        BuildTree();
+    }
+}
+
+// -----------------------------------------------------------------------------
+
+void MainFrame::RemoveFolder()
+{
+    if (userdir != baddir) {
+        if (!showfiles) ToggleShowFiles();
+        userdir = baddir;
+        BuildTree();
+    }
+}
+
+// -----------------------------------------------------------------------------
+
+void MainFrame::AppendDir(const wxString& indir, wxTreeCtrl* treectrl, wxTreeItemId root)
+{
+    wxString dir = indir;
+    if (dir.Last() == wxFILE_SEP_PATH) dir.Truncate(dir.Length()-1);
+    wxDirItemData* diritem = new wxDirItemData(dir, dir, true);
+    wxTreeItemId id = treectrl->AppendItem(root, dir.AfterLast(wxFILE_SEP_PATH), 0, 0, diritem);
+
+    // expand the root item
+    if ( diritem->HasFiles() || diritem->HasSubDirs() ) {
+        treectrl->SetItemHasChildren(id);
+        treectrl->Expand(id);
+    }
+}
+
+// -----------------------------------------------------------------------------
+
+void MainFrame::BuildTree()
+{
+    // delete old tree (except root)
+    wxTreeCtrl* treectrl = filectrl->GetTreeCtrl();
+    wxTreeItemId root = filectrl->GetRootId();
+    treectrl->DeleteChildren(root);
+
+    if ( wxFileName::DirExists(filedir) ) {
+        // append filedir as first child of root
+        AppendDir(filedir, treectrl, root);
+    }
+
+    if ( wxFileName::DirExists(userdir) ) {
+        // append user's folder as another child of root
+        AppendDir(userdir, treectrl, root);
+    } else {
+        userdir = baddir;
+    }
+        
+    // select top folder so hitting left arrow can collapse it and won't cause an assert
+    wxTreeItemIdValue cookie;
+    wxTreeItemId id = treectrl->GetFirstChild(root, cookie);
+    if (id.IsOk()) treectrl->SelectItem(id);
+    
+    #if defined(__WXMAC__) && wxCHECK_VERSION(3,1,3)
+        // this avoids dotted lines
+        treectrl->SetWindowStyle(wxTR_DEFAULT_STYLE | wxTR_HIDE_ROOT);
+    #endif
+}
+
+// -----------------------------------------------------------------------------
+
 void MainFrame::CreateDirControl()
 {
     filectrl = new wxGenericDirCtrl(splitwin, wxID_ANY, wxEmptyString,
@@ -2528,44 +2571,37 @@ void MainFrame::CreateDirControl()
     // now remove wxDIRCTRL_DIR_ONLY so we see files
     filectrl->SetWindowStyle(wxNO_BORDER);
 #endif
+
+wxTreeCtrl* treectrl = filectrl->GetTreeCtrl();
     
 #if defined(__WXGTK__)
     // make sure background is white when using KDE's GTK theme
-    #if wxCHECK_VERSION(2,9,0)
-        filectrl->GetTreeCtrl()->SetBackgroundStyle(wxBG_STYLE_ERASE);
-    #else
-        filectrl->GetTreeCtrl()->SetBackgroundStyle(wxBG_STYLE_COLOUR);
-    #endif
-    filectrl->GetTreeCtrl()->SetBackgroundColour(*wxWHITE);
+    treectrl->SetBackgroundStyle(wxBG_STYLE_ERASE);
+    treectrl->SetBackgroundColour(*wxWHITE);
     // reduce indent a bit
-    filectrl->GetTreeCtrl()->SetIndent(8);
+    treectrl->SetIndent(8);
 #elif defined(__WXMAC__)
-    // ensure entire background is near white (avoids bug in wxMac 3.1.5 if bg is pure white)
-    filectrl->GetTreeCtrl()->SetBackgroundColour(wxColour(254,254,254));
-    // reduce indent a bit more
-    filectrl->GetTreeCtrl()->SetIndent(6);
+    // reduce indent a bit
+    treectrl->SetIndent(10);
 #else
     // reduce indent a lot on Windows
-    filectrl->GetTreeCtrl()->SetIndent(4);
+    treectrl->SetIndent(4);
 #endif
     
 #ifdef __WXMAC__
-    // reduce font size (to get this to reduce line height we had to
-    // make a few changes to wxMac/src/generic/treectlg.cpp)
+    /* change font size???
     wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
-    font.SetPointSize(12);
-    filectrl->GetTreeCtrl()->SetFont(font);
+    font.SetPointSize(14);
+    treectrl->SetFont(font);
+    */
 #endif
     
-    if ( wxFileName::DirExists(filedir) ) {
-        // only show filedir and its contents
-        SimplifyTree(filedir, filectrl->GetTreeCtrl(), filectrl->GetRootId());
-    }
+    BuildTree();
     
     // install event handler to detect clicking on a file
-    filectrl->GetTreeCtrl()->Connect(wxID_ANY, wxEVT_LEFT_DOWN, wxMouseEventHandler(MainFrame::OnTreeClick));
-    filectrl->GetTreeCtrl()->Connect(wxID_ANY, wxEVT_RIGHT_DOWN, wxMouseEventHandler(MainFrame::OnTreeClick));
-    filectrl->GetTreeCtrl()->Connect(wxID_ANY, wxEVT_LEFT_DCLICK, wxMouseEventHandler(MainFrame::OnTreeClick));
+    treectrl->Connect(wxID_ANY, wxEVT_LEFT_DOWN, wxMouseEventHandler(MainFrame::OnTreeClick));
+    treectrl->Connect(wxID_ANY, wxEVT_RIGHT_DOWN, wxMouseEventHandler(MainFrame::OnTreeClick));
+    treectrl->Connect(wxID_ANY, wxEVT_LEFT_DCLICK, wxMouseEventHandler(MainFrame::OnTreeClick));
 }
 
 // -----------------------------------------------------------------------------

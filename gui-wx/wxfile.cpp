@@ -1709,14 +1709,14 @@ void MainFrame::ToggleShowFiles()
     }
     if (showfiles && filedir != oldfiledir) {
         // show new file directory
-        SimplifyTree(filedir, filectrl->GetTreeCtrl(), filectrl->GetRootId());
+        BuildTree();
     }
     viewptr->SetFocus();
 }
 
 // -----------------------------------------------------------------------------
 
-void MainFrame::ChangeFileDir()
+void MainFrame::SetFolder()
 {
     wxDirDialog dirdlg(this, _("Choose a new file folder"), filedir, wxDD_NEW_DIR_BUTTON);
     int button = dirdlg.ShowModal();
@@ -1734,7 +1734,7 @@ void MainFrame::SetFileDir(const wxString& newdir)
         filedir = newdir;
         if (showfiles) {
             // show new file directory
-            SimplifyTree(filedir, filectrl->GetTreeCtrl(), filectrl->GetRootId());
+            BuildTree();
         }
     }
 }
