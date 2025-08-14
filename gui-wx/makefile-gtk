@@ -113,7 +113,7 @@ $(OBJDIR) $(LIBDIR):
 	mkdir -p $@
 
 clean: 
-	rm -f $(EXEDIR)/golly $(EXEDIR)/bgolly $(EXEDIR)/RuleTableToTree
+	rm -f $(EXEDIR)/golly $(EXEDIR)/bgolly
 	-rm -rf $(OBJDIR)
 	-rm -rf $(LOCALDIR)
 	-(cd $(LUADIR) && $(MAKE) clean)
@@ -125,17 +125,11 @@ golly: $(OBJDIR) $(BASEOBJ) $(WXOBJ) $(LUALIB)
 bgolly: $(OBJDIR) $(BASEOBJ) $(OBJDIR)/bgolly.o
 	$(CXXC) $(CXXFLAGS) -o $(EXEDIR)/bgolly $(BASEOBJ) $(OBJDIR)/bgolly.o $(LDFLAGS) $(ZLIB_LDFLAGS)
 
-RuleTableToTree: $(OBJDIR) $(BASEOBJ) $(OBJDIR)/RuleTableToTree.o
-	$(CXXC) $(CXXFLAGS) -o $(EXEDIR)/RuleTableToTree $(BASEOBJ) $(OBJDIR)/RuleTableToTree.o $(LDFLAGS) $(ZLIB_LDFLAGS)
-
 $(LUALIB):
 	(cd $(LUADIR) && $(MAKE) all)
 
 $(OBJDIR)/bgolly.o: $(CMDDIR)/bgolly.cpp
 	$(CXXC) $(CXXFLAGS) $(ZLIB_CXXFLAGS) -c -o $@ $(CMDDIR)/bgolly.cpp
-
-$(OBJDIR)/RuleTableToTree.o: $(CMDDIR)/RuleTableToTree.cpp
-	$(CXXC) $(CXXFLAGS) -c -o $@ $(CMDDIR)/RuleTableToTree.cpp
 
 $(OBJDIR)/bigint.o: $(BASEDIR)/bigint.cpp
 	$(CXXC) $(CXXFLAGS) -c -o $@ $(BASEDIR)/bigint.cpp

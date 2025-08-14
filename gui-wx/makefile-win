@@ -378,7 +378,7 @@ __LIB_PNG_p = wxpng$(WXDEBUGFLAG).lib
 
 ### Targets: ###
 
-all: $(OBJDIR) $(EXEDIR)\Golly.exe $(EXEDIR)\bgolly.exe $(EXEDIR)\RuleTableToTree.exe
+all: $(OBJDIR) $(EXEDIR)\Golly.exe $(EXEDIR)\bgolly.exe
 
 $(BASEO): $(BASEH)
 
@@ -397,7 +397,6 @@ clean:
 	-if exist *.res del *.res
 	-if exist $(EXEDIR)\Golly.exe del $(EXEDIR)\Golly.exe
 	-if exist $(EXEDIR)\bgolly.exe del $(EXEDIR)\bgolly.exe
-	-if exist $(EXEDIR)\RuleTableToTree.exe del $(EXEDIR)\RuleTableToTree.exe
 	-if exist golly.pdb del golly.pdb
 	-if exist $(LUADIR)\*.obj del $(LUADIR)\*.obj
 
@@ -422,15 +421,8 @@ $(EXEDIR)\bgolly.exe: $(BASEO) $(OBJDIR)/bgolly.obj
 	link /LARGEADDRESSAWARE /NOLOGO /OUT:$(EXEDIR)\bgolly.exe $(LDFLAGS) /LIBPATH:$(LIBDIRNAME) \
 	$(OBJDIR)/bgolly.obj $(BASEO) wxzlib$(WXDEBUGFLAG).lib
 
-$(EXEDIR)\RuleTableToTree.exe: $(BASEO) $(OBJDIR)/RuleTableToTree.obj
-	link /LARGEADDRESSAWARE /NOLOGO /OUT:$(EXEDIR)\RuleTableToTree.exe $(LDFLAGS) /LIBPATH:$(LIBDIRNAME) \
-	$(OBJDIR)/RuleTableToTree.obj $(BASEO) wxzlib$(WXDEBUGFLAG).lib
-
 $(OBJDIR)/bgolly.obj: $(CMDDIR)/bgolly.cpp
 	$(CXX) /c /nologo /Fo$@ $(CXXFLAGS) $(CMDDIR)/bgolly.cpp
-
-$(OBJDIR)/RuleTableToTree.obj: $(CMDDIR)/RuleTableToTree.cpp
-	$(CXX) /c /nologo /Fo$@ $(CXXFLAGS) $(CMDDIR)/RuleTableToTree.cpp
 
 MBASEO = $(OBJDIR)/bigint.obj $(OBJDIR)/lifealgo.obj $(OBJDIR)/hlifealgo.obj \
     $(OBJDIR)/hlifedraw.obj $(OBJDIR)/qlifealgo.obj $(OBJDIR)/qlifedraw.obj \

@@ -133,21 +133,15 @@ $(OBJDIR):
 	mkdir -p $(OBJDIR)
 
 clean:
-	rm -f $(OBJDIR)/*.o $(EXEDIR)/bgolly $(EXEDIR)/RuleTableToTree
+	rm -f $(OBJDIR)/*.o $(EXEDIR)/bgolly
 	rm -rf $(EXEDIR)/$(APP_NAME).app
 	-(cd $(LUADIR) && $(MAKE) clean)
 
 bgolly: $(BASEOBJ) $(OBJDIR)/bgolly.o
 	$(CXXC) $(CXXBASE) -o $(EXEDIR)/bgolly $(BASEOBJ) $(OBJDIR)/bgolly.o $(LDBASE)
 
-RuleTableToTree: $(BASEOBJ) $(OBJDIR)/RuleTableToTree.o
-	$(CXXC) $(CXXBASE) -o $(EXEDIR)/RuleTableToTree $(BASEOBJ) $(OBJDIR)/RuleTableToTree.o $(LDBASE)
-
 $(OBJDIR)/bgolly.o: $(CMDDIR)/bgolly.cpp
 	$(CXXC) $(CXXBASE) -c -o $@ $(CMDDIR)/bgolly.cpp
-
-$(OBJDIR)/RuleTableToTree.o: $(CMDDIR)/RuleTableToTree.cpp
-	$(CXXC) $(CXXBASE) -c -o $@ $(CMDDIR)/RuleTableToTree.cpp
 
 app.bin: $(BASEOBJ) $(WXOBJ) $(LUALIB)
 	$(CXXC) -o $@ $(BASEOBJ) $(WXOBJ) $(LUALIB) $(LDFLAGS) -L$(LIBDIRNAME) \

@@ -123,7 +123,6 @@ rule cxxc_wx
 # base build
 build $objdir/bgolly.o: cxxc $cmddir/bgolly.cpp
    extra_cxxflags = $zlib_cxxflags
-build $objdir/RuleTableToTree.o: cxxc $cmddir/RuleTableToTree.cpp
 build $objdir/bigint.o: cxxc $basedir/bigint.cpp
 build $objdir/lifealgo.o: cxxc $basedir/lifealgo.cpp
 build $objdir/hlifealgo.o: cxxc $basedir/hlifealgo.cpp
@@ -228,13 +227,3 @@ build $exedir/bgolly: link $objdir/bigint.o $objdir/lifealgo.o $objdir/hlifealgo
       $objdir/liferender.o $objdir/viewport.o $objdir/lifepoll.o $
       $objdir/generationsalgo.o $objdir/superalgo.o $
       $objdir/bgolly.o
-
-# link RuleTableToTree
-build $exedir/RuleTableToTree: link $objdir/bigint.o $objdir/lifealgo.o $objdir/hlifealgo.o $
-      $objdir/hlifedraw.o $objdir/qlifealgo.o $objdir/qlifedraw.o $objdir/ltlalgo.o $objdir/ltldraw.o $
-      $objdir/jvnalgo.o $objdir/ruletreealgo.o $objdir/ruletable_algo.o $objdir/ruleloaderalgo.o $
-      $objdir/ghashbase.o $objdir/ghashdraw.o $objdir/readpattern.o $
-      $objdir/writepattern.o $objdir/liferules.o $objdir/util.o $
-      $objdir/liferender.o $objdir/viewport.o $objdir/lifepoll.o $
-      $objdir/generationsalgo.o $objdir/superalgo.o $
-      $objdir/RuleTableToTree.o
