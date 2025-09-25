@@ -28,6 +28,9 @@
 <li> Added "-" and "+" buttons to the help window for changing the text size.
 <li> Golly now uses C++11's Mersenne Twister for randomly filling a selection, rather than rand(),
      since rand() has a somewhat low period (about 2^31 or 2^32 on various platforms).
+<li> The maximum grid size in the Larger than Life algorithm has been increased
+     from 100 million cells to 1 billion cells (note that Golly will use about 4.5GB of memory
+     if it gets near that limit).
 <li> Fixed slow scrolling at some scales when using arrow keys.
 <li> Fixed Control > Reset being called via a keyboard shortcut while the mouse is drawing or selecting cells.
 <li> Fixed cosmetic problems with the state boxes and directory icons in the macOS app.

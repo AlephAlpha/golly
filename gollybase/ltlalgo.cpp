@@ -25,7 +25,7 @@ static const char *DEFAULTRULE = "R1,C0,M0,S2..3,B3..3,NM";
 static const int MAXNCOLS = 2 * MAXRANGE + 1;
 
 // maximum number of cells in grid must be < 2^31 so population can't overflow
-#define MAXCELLS 100000000.0
+#define MAXCELLS 1000000000.0 // 1 billion
 
 // faster_Neumann_* calls are much slower than fast_Neumann when the
 // range is 1 or 2, similar when 5, but much faster when 10 or above
@@ -62,19 +62,6 @@ ltlalgo::ltlalgo()
     stateweights = NULL;
     customneighborhood = NULL;
     customlength = 0;
-}
-
-// -----------------------------------------------------------------------------
-
-// Returns a count of the number of bits set in given int.
-
-static int bitcount(int v) {
-   int r = 0 ;
-   while (v) {
-      r++ ;
-      v &= v - 1 ;
-   }
-   return r ;
 }
 
 // -----------------------------------------------------------------------------
@@ -216,7 +203,7 @@ const char* ltlalgo::resize_grids(int up, int down, int left, int right)
     int newwd = gwd + left + right;
     int newht = ght + up + down;
     if ((float)newwd * (float)newht > MAXCELLS) {
-        return "Sorry, but the universe can't be expanded that far.";
+        return "Sorry, but the universe can't be expanded any further.";
     }
 
     // check if new grid edges would be outside editing limits
@@ -3214,6 +3201,19 @@ const char* ltlalgo::read_weighted(const char *n, int r, int states, int &c, TGr
 
     // return success
     return NULL;
+}
+
+// -----------------------------------------------------------------------------
+
+// Returns a count of the number of bits set in given int.
+
+static int bitcount(int v) {
+   int r = 0 ;
+   while (v) {
+      r++ ;
+      v &= v - 1 ;
+   }
+   return r ;
 }
 
 // -----------------------------------------------------------------------------
