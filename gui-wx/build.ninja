@@ -10,7 +10,7 @@
 # % ninja -t clean
 
 # golly version
-app_version = 5.0
+app_version = 5.0b1
 
 # build directories
 basedir = ../gollybase
