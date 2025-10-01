@@ -17,6 +17,10 @@ The suffix syntax is best illustrated by these examples:
    <td> &mdash; plane with width 30 and height 20</td>
 </tr>
 <tr>
+   <td><b>:P30</b></td><td width=10> </td>
+   <td> &mdash; plane with width 30 and height 30</td>
+</tr>
+<tr>
    <td><b>:P30,0</b></td><td width=10> </td>
    <td> &mdash; plane with width 30 and infinite height</td>
 </tr>
@@ -71,6 +75,8 @@ always uppercase in the canonical string returned by the getrule() script comman
 <li>
 If a bounded grid has width <i>w</i> and height <i>h</i> then the cell in
 the top left corner has coordinates -int(<i>w</i>/2),-int(<i>h</i>/2).
+<li>
+If only the width is specified then the height will be the same.
 <li>
 The maximum width or height of a bounded grid is 2,000,000,000.
 <li>
