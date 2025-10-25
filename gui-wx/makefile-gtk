@@ -13,7 +13,7 @@
 include local-gtk-template.mk
 -include local-gtk.mk
 
-APP_VERSION = 5.0b1
+APP_VERSION = 5.0
 
 # these directory paths are relative to the location of this makefile:
 EXEDIR = ..
