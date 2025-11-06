@@ -1037,6 +1037,7 @@ const char *generationsalgo::setrule(const char *rulestring) {
       if (num_states < 2) {
          return "Number of states too low in Generations rule." ;
       }
+
       if (num_states > 256) {
          return "Number of states too high in Generations rule." ;
       }
@@ -1062,6 +1063,11 @@ const char *generationsalgo::setrule(const char *rulestring) {
          }
       }
    
+      // at least one of slash, b or s must be present
+      if (!(slashpos || bpos || spos)) {
+         return "Rule must contain a slash or B or S." ;
+      }
+
       // digits can not be greater than the number of neighbors for the defined neighborhood
       if (maxdigit > neighbors) {
          return "Digit greater than neighborhood allows." ;
@@ -1077,68 +1083,33 @@ const char *generationsalgo::setrule(const char *rulestring) {
          }
       }
    
-      // check if there was a slash to divide birth from survival
-      if (!slashpos) {
-         // check if both b and s exist
-         if (bpos && spos) {
-            // determine whether b or s is first
-            if (bpos < spos) {
-               // skip b and cut the string using s
-               bpos++ ;
-               *spos = 0 ;
-               spos++ ;
-            }
-            else {
-               // skip s and cut the string using b
-               spos++ ;
-               *bpos = 0 ;
-               bpos++ ;
-            }
+      // slash exists so set determine which part is b and which is s
+      *slashpos = 0 ;
+   
+      // check if b or s are defined
+      if (bpos || spos) {
+         // check for birth first
+         if ((bpos && bpos < slashpos) || (spos && spos > slashpos)) {
+            // birth then survival
+            bpos = t ;
+            spos = slashpos + 1 ;
          }
          else {
-            // just bpos
-            if (bpos) {
-               bpos = t ;
-               removeChar(bpos, 'b') ;
-               spos = bpos + strlen(bpos) ;
-            }
-            else {
-               // just spos
-               spos = t ;
-               removeChar(spos, 's') ;
-               bpos = spos + strlen(spos) ;
-            }
+            // survival then birth
+            bpos = slashpos + 1 ;
+            spos = t ;
          }
+
+         // remove b or s from rule parts
+         removeChar(bpos, 'b') ;
+         removeChar(spos, 's') ;
       }
       else {
-         // slash exists so set determine which part is b and which is s
-         *slashpos = 0 ;
-   
-         // check if b or s are defined
-         if (bpos || spos) {
-            // check for birth first
-            if ((bpos && bpos < slashpos) || (spos && spos > slashpos)) {
-               // birth then survival
-               bpos = t ;
-               spos = slashpos + 1 ;
-            }
-            else {
-               // survival then birth
-               bpos = slashpos + 1 ;
-               spos = t ;
-            }
-   
-            // remove b or s from rule parts
-            removeChar(bpos, 'b') ;
-            removeChar(spos, 's') ;
-         }
-         else {
-            // no b or s so survival first
-            spos = t ;
-            bpos = slashpos + 1 ;
-         }
+         // no b or s so survival first
+         spos = t ;
+         bpos = slashpos + 1 ;
       }
-   
+
       // if not totalistic and a part exists it must start with a digit
       if (!totalistic) {
          // check birth
@@ -1146,11 +1117,13 @@ const char *generationsalgo::setrule(const char *rulestring) {
          if (c && (c < '0' || c > '8')) {
             return "Non-totalistic birth must start with a digit." ;
          }
+
          // check survival
          c = *spos ;
          if (c && (c < '0' || c > '8')) {
             return "Non-totalistic survival must start with a digit." ;
          }
+
          // one of birth or survival must be at the start of the rule
          if (!(bpos == tidystring || spos == tidystring)) {
             return "Invalid characters at start of rule." ;
@@ -1166,6 +1139,7 @@ const char *generationsalgo::setrule(const char *rulestring) {
       if (!lettersValid(bpos)) {
          return "Letter not valid for birth neighbor count." ;
       }
+
       if (!lettersValid(spos)) {
          return "Letter not valid for survival neighbor count." ;
       }
@@ -1214,4 +1188,3 @@ const char *generationsalgo::setrule(const char *rulestring) {
 const char* generationsalgo::getrule() {
    return canonrule ;
 }
-
