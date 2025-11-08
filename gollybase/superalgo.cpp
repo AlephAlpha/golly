@@ -1544,25 +1544,25 @@ state superalgo::slowcalc(state nw, state n, state ne, state w, state c,
                case 1:
                   result = 2 ;
                   break ;
-   
+
                case 3:
                case 5:
                   result = 4 ;
                   break ;
-   
+
                default:
                process = true ;
                break ;
             }
          }
-   
+
          // check whether state still needs processing
          if (process) {
             // create lookup index for next generation
             int index = ((nw & 1) << 8) | ((n & 1) << 7) | ((ne & 1) << 6)
                | ((w & 1) << 5) | ((c & 1) << 4) | ((e & 1) << 3)
                | ((sw & 1) << 2) | ((s & 1) << 1) | (se & 1) ;
-   
+
             // get cell state
             if (lookup[index]) {
                // cell alive
@@ -1573,10 +1573,10 @@ state superalgo::slowcalc(state nw, state n, state ne, state w, state c,
                      case 4:
                         result = 3 ;
                         break ;
-      
+
                      case 6:
                         break ;
-      
+
                      default:
                         result = 1 ;
                   }
@@ -1609,20 +1609,20 @@ state superalgo::slowcalc(state nw, state n, state ne, state w, state c,
                   case 1:
                      result = 2 ;
                      break ;
-                  
+
                   case 3:
                   case 5:
                      result = 4 ;
                      break ;
-                  
+
                   case 9:
                      result = 10 ;
                      break ;
-      
+
                   case 11:
                      result = 12 ;
                      break ;
-      
+
                   default:
                      // not handled here so process below
                      process = true ;
@@ -1630,14 +1630,14 @@ state superalgo::slowcalc(state nw, state n, state ne, state w, state c,
                }
             }
          }
-   
+
          // check whether state still needs processing
          if (process) {
             // create lookup index for next generation
             int index = ((nw & 1) << 8) | ((n & 1) << 7) | ((ne & 1) << 6)
                | ((w & 1) << 5) | ((c & 1) << 4) | ((e & 1) << 3)
                | ((sw & 1) << 2) | ((s & 1) << 1) | (se & 1) ;
-   
+
             // get cell state
             if (lookup[index]) {
                // cell alive
@@ -1648,14 +1648,14 @@ state superalgo::slowcalc(state nw, state n, state ne, state w, state c,
                      case 4:
                         result = 3 ;
                         break ;
-      
+
                      case 6:
                         break ;
-      
+
                      case 8:
                         result = 7 ;
                         break ;
-      
+
                      default:
                         result = 1 ;
                         calc = typeMask & alive9to25 ;
@@ -1708,25 +1708,25 @@ state superalgo::slowcalc(state nw, state n, state ne, state w, state c,
                                  result = 14 ;
                               }
                               break ;
-      
+
                            case 18:
                               if ((typeMask & (1 << 22)) != 0) {
                                  result = 22 ;
                               }
                               break ;
-      
+
                            case 20:
                               if ((typeMask & (1 << 18)) != 0) {
                                  result = 18 ;
                               }
                               break ;
-      
+
                            case 22:
                               if ((typeMask & (1 << 20)) != 0) {
                                  result = 20 ;
                               }
                               break ;
-      
+
                            case 24:
                               if ((typeMask & aliveWith14or18) != 0) {
                                  result = 18 ;
@@ -2369,12 +2369,12 @@ void superalgo::createCanonicalName(const char *base64, const char *postfix) {
          for (i = 0 ; i <= neighbors ; i++) {
             if (rulebits & (1 << i)) {
                canonrule[p++] = '0' + (char)i ;
-      
+
                // check for non-totalistic
                if (!totalistic) {
                   // add any defined letters
                   np = addLetters(i, p) ;
-      
+
                   // check if letters were added
                   if (np != p) {
                      if (np > p) {
@@ -2385,21 +2385,21 @@ void superalgo::createCanonicalName(const char *base64, const char *postfix) {
                }
             }
          }
-      
+
          // add slash
          canonrule[p++] = '/' ;
-      
+
          // output survival part
          canonrule[p++] = 'S' ;
          for (i = 0 ; i <= neighbors ; i++) {
             if (rulebits & (1 << (survival_offset+i))) {
                canonrule[p++] = '0' + (char)i ;
-      
+
                // check for non-totalistic
                if (!totalistic) {
                   // add any defined letters
                   np = addLetters(survival_offset + i, p) ;
-         
+
                   // check if letters were added
                   if (np != p) {
                      if (np > p) {
@@ -2701,7 +2701,7 @@ const char *superalgo::setrule(const char *rulestring) {
          while (r < end) {
             // get the next character and convert to lowercase
             c = (char) tolower(*r) ;
-      
+
             // process the character
             switch (c) {
             // birth
@@ -2714,7 +2714,7 @@ const char *superalgo::setrule(const char *rulestring) {
                *t = c ;
                t++ ;
                break ;
-      
+
             // survival
             case 's':
                if (spos) {
@@ -2725,7 +2725,7 @@ const char *superalgo::setrule(const char *rulestring) {
                *t = c ;
                t++ ;
                break ;
-      
+
             // slash
             case '/':
                if (slashpos) {
@@ -2747,7 +2747,7 @@ const char *superalgo::setrule(const char *rulestring) {
                *t = c ;
                t++ ;
                break ;
-            
+
             // hex
             case 'h':
                if (neighbormask != MOORE) {
@@ -2759,7 +2759,7 @@ const char *superalgo::setrule(const char *rulestring) {
                *t = c ;
                t++ ;
                break ;
-      
+
             // von neumann
             case 'v':
                if (neighbormask != MOORE) {
@@ -2771,7 +2771,7 @@ const char *superalgo::setrule(const char *rulestring) {
                *t = c ;
                t++ ;
                break ;
-      
+
             // minus
             case '-':
                // check if previous character is a digit
@@ -2783,7 +2783,7 @@ const char *superalgo::setrule(const char *rulestring) {
                t++ ;
                totalistic = false ;
                break ;
-      
+
             // other characters
             default:
                // ignore space
@@ -2794,7 +2794,7 @@ const char *superalgo::setrule(const char *rulestring) {
                      // copy character
                      *t = c ; 
                      t++ ;
-      
+
                      // check if totalistic (i.e. found a valid non-digit)
                      digit = int(charpos - valid_rule_letters) ;
                      if (digit > 8) {
@@ -2811,25 +2811,25 @@ const char *superalgo::setrule(const char *rulestring) {
                }
                break ;
             }
-      
+
             // next character
             r++ ;
          }
-      
+
          // ensure null terminated
          *t = 0 ;
-      
+
          // don't allow empty rule string
          t = tidystring ;
          if (*t == 0) {
             return "Rule cannot be empty string." ;
          }
-      
+
          // underscore only valid for non-totalistic rules
          if (underscorepos && totalistic) {
             return "Underscore not valid for totalistic rules, use slash." ;
          }
-      
+
          // if neighborhood specified then must be last character
          if (neighbormask != MOORE) {
             size_t len = strlen(t) ;
@@ -2842,19 +2842,38 @@ const char *superalgo::setrule(const char *rulestring) {
                t[len - 1] = 0 ;
             }
          }
-      
+
+         // at least one of slash, b or s must be present
+         if (!(slashpos || bpos || spos)) {
+            return "Rule must contain a slash or B or S." ;
+         }
+
          // digits can not be greater than the number of neighbors for the defined neighborhood
          if (maxdigit > neighbors) {
             return "Digit greater than neighborhood allows." ;
          }
-      
+
          // if slash present and both b and s then one must be each side of the slash
          if (slashpos && bpos && spos) {
             if ((bpos < slashpos && spos < slashpos) || (bpos > slashpos && spos > slashpos)) {
                return "B and S must be either side of slash." ;
             }
          }
-      
+
+         // if slash present and only one of b and s then the letter must be at the start or immediately after the slash
+        if (slashpos && ((bpos && !spos) || (spos && !bpos))) {
+            if (bpos) {
+               if (!(bpos == tidystring || bpos == slashpos + 1)) {
+                  return "B must be at start of rule or immediately after slash." ;
+               }
+            }
+            else {
+               if (!(spos == tidystring || spos == slashpos + 1)) {
+                  return "S must be at start of rule or immediately after slash." ;
+               }
+            }
+         }
+
          // check if there was a slash to divide birth from survival
          if (!slashpos) {
             // check if both b and s exist
@@ -2862,32 +2881,49 @@ const char *superalgo::setrule(const char *rulestring) {
                // determine whether b or s is first
                if (bpos < spos) {
                   // skip b and cut the string using s
-                  bpos++ ;
-                  *spos = 0 ;
-                  spos++ ;
+                  removeChar(bpos, 'b') ;
+                  *(spos - 1) = 0 ;
                } else {
                   // skip s and cut the string using b
-                  spos++ ;
-                  *bpos = 0 ;
-                  bpos++ ;
+                  removeChar(spos, 's') ;
+                  *(bpos - 1) = 0 ;
                }
             } else {
                // just bpos
                if (bpos) {
-                  bpos = t ;
-                  removeChar(bpos, 'b') ;
-                  spos = bpos + strlen(bpos) ;
-               } else {
+                  if (bpos == t) {
+                        // bpos at beginning of string so remove 'b' and set spos to the null at the end
+                        removeChar(bpos, 'b') ;
+                        spos = bpos + strlen(bpos) ;
+                  }
+                  else {
+                        // bpos not at beginning so set spos to beginning and null the 'b' in bpos and increment
+                        *bpos = 0 ;
+                        bpos++ ;
+                        spos = t ;
+                  }
+               }
+               else {
                   // just spos
-                  spos = t ;
-                  removeChar(spos, 's') ;
-                  bpos = spos + strlen(spos) ;
+                  if (spos) {
+                     if (spos == t) {
+                           // spos at beginning of string so remove 's' and set bpos to the null at the end
+                           removeChar(spos, 's') ;
+                           bpos = spos + strlen(spos) ;
+                     }
+                     else {
+                           // spos not at beginning so set bpos to beginning and null the 's' in spos and increment
+                           *spos = 0 ;
+                           spos++ ;
+                           bpos = t ;
+                     }
+                  }
                }
             }
          } else {
             // slash exists so set determine which part is b and which is s
             *slashpos = 0 ;
-      
+
             // check if b or s are defined
             if (bpos || spos) {
                // check for birth first
@@ -2900,7 +2936,7 @@ const char *superalgo::setrule(const char *rulestring) {
                   bpos = slashpos + 1 ;
                   spos = t ;
                }
-      
+
                // remove b or s from rule parts
                removeChar(bpos, 'b') ;
                removeChar(spos, 's') ;
@@ -2910,7 +2946,7 @@ const char *superalgo::setrule(const char *rulestring) {
                bpos = slashpos + 1 ;
             }
          }
-      
+
          // if not totalistic and a part exists it must start with a digit
          if (!totalistic) {
             // check birth
@@ -2918,26 +2954,29 @@ const char *superalgo::setrule(const char *rulestring) {
             if (c && (c < '0' || c > '8')) {
                return "Non-totalistic birth must start with a digit." ;
             }
+
             // check survival
             c = *spos ;
             if (c && (c < '0' || c > '8')) {
                return "Non-totalistic survival must start with a digit." ;
             }
+
             // one of birth or survival must be at the start of the rule
             if (!(bpos == tidystring || spos == tidystring)) {
                return "Invalid characters at start of rule." ;
             }
          }
-      
+
          // if not totalistic then neighborhood must be Moore
          if (!totalistic && neighbormask != MOORE) {
             return "Non-totalistic only supported with Moore neighborhood." ;
          }
-      
+
          // validate letters used against each specified neighbor count
          if (!lettersValid(bpos)) {
             return "Letter not valid for birth neighbor count." ;
          }
+
          if (!lettersValid(spos)) {
             return "Letter not valid for survival neighbor count." ;
          }
@@ -3023,4 +3062,3 @@ const char *superalgo::setrule(const char *rulestring) {
 const char* superalgo::getrule() {
    return canonrule ;
 }
-

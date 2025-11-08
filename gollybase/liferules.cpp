@@ -368,7 +368,7 @@ void liferules::createRuleMapFromMAP(const char *base64) {
       index = strchr(base64_characters, *base64) ;
       base64++ ;
       c = index ? (char)(index - base64_characters) : 0 ;
- 
+
       // decode the character
       bits[j] = c >> 5 ;
       j++ ;
@@ -397,7 +397,7 @@ void liferules::createRuleMapFromMAP(const char *base64) {
           remainbits-- ;
       }
    }
- 
+
    // copy into rule array using the neighborhood mask
    int k, m ;
    for (i = 0 ; i < ALL3X3 ; i++) {
@@ -414,7 +414,7 @@ void liferules::createRuleMapFromMAP(const char *base64) {
       rule3x3[i] = bits[k] ;
    }
 }
-   
+
 // create the rule map from birth and survival strings
 void liferules::createRuleMap(const char *birth, const char *survival) {
    // clear the rule array
@@ -556,12 +556,12 @@ void liferules::createCanonicalName(lifealgo *algo, const char *base64) {
          for (i = 0 ; i <= neighbors ; i++) {
             if (rulebits & (1 << i)) {
                canonrule[p++] = '0' + (char)i ;
-   
+
                // check for non-totalistic
                if (!totalistic) {
                   // add any defined letters
                   np = addLetters(i, p) ;
-           
+
                   // check if letters were added
                   if (np != p) {
                      if (np > p) {
@@ -572,21 +572,21 @@ void liferules::createCanonicalName(lifealgo *algo, const char *base64) {
                }
             }
          }
-   
+
          // add slash
          canonrule[p++] = '/' ;
-   
+
          // output survival part
          canonrule[p++] = 'S' ;
          for (i = 0 ; i <= neighbors ; i++) {
             if (rulebits & (1 << (survival_offset+i))) {
                canonrule[p++] = '0' + (char)i ;
-   
+
                // check for non-totalistic
                if (!totalistic) {
                   // add any defined letters
                   np = addLetters(survival_offset + i, p) ;
-   
+
                   // check if letters were added
                   if (np != p) {
                      if (np > p) {
@@ -597,12 +597,12 @@ void liferules::createCanonicalName(lifealgo *algo, const char *base64) {
                }
             }
          }
-   
+
          // check if non-totalistic became totalistic
          if (!totalistic && !stillnontotalistic) {
             totalistic = true ;
          }
-   
+
          // add neighborhood
          if (neighbormask == HEXAGONAL) canonrule[p++] = 'H' ;
          if (neighbormask == VON_NEUMANN) canonrule[p++] = 'V' ;
@@ -634,7 +634,7 @@ void liferules::convertTo4x4Map(char *which) {
       //  7  6  5  x      15 14 13
       //  x  x  x  x
       v = rule3x3[((i & 57344) >> 13) | ((i & 3584) >> 6) | ((i & 224) << 1)] << 5 ;
-     
+
       //  x 14 13 12       6  5  4
       //  x 10  9  8  ->  10  9  8  ->  x 9' 0 0 x x
       //  x  6  5  4      14 13 12
@@ -834,7 +834,7 @@ const char *liferules::setrule(const char *rulestring, lifealgo *algo) {
 
       // replace the colon if one was present
       if (colonpos) *colonpos = ':' ;
-      
+
       // check if there is base64 padding
       if (maplen > 2 && !strncmp(r + maplen - 2, "==", 2)) {
          // remove padding
@@ -874,7 +874,7 @@ const char *liferules::setrule(const char *rulestring, lifealgo *algo) {
       while (r < end) {
          // get the next character and convert to lowercase
          c = (char) tolower(*r) ;
-   
+
          // process the character
          switch (c) {
          // birth
@@ -887,7 +887,7 @@ const char *liferules::setrule(const char *rulestring, lifealgo *algo) {
             *t = c ;
             t++ ;
             break ;
-   
+
          // survival
          case 's':
             if (spos) {
@@ -898,7 +898,7 @@ const char *liferules::setrule(const char *rulestring, lifealgo *algo) {
             *t = c ;
             t++ ;
             break ;
-   
+
          // slash
          case '/':
             if (slashpos) {
@@ -909,7 +909,7 @@ const char *liferules::setrule(const char *rulestring, lifealgo *algo) {
             *t = c ;
             t++ ;
             break ;
-           
+
          // underscore
          case '_':
             if (underscorepos) {
@@ -920,7 +920,7 @@ const char *liferules::setrule(const char *rulestring, lifealgo *algo) {
             *t = c ;
             t++ ;
             break ;
-   
+
          // hex
          case 'h':
             if (neighbormask != MOORE || wolfram != -1) {
@@ -932,7 +932,7 @@ const char *liferules::setrule(const char *rulestring, lifealgo *algo) {
             *t = c ;
             t++ ;
             break ;
-   
+
          // von neumann
          case 'v':
             if (neighbormask != MOORE || wolfram != -1) {
@@ -944,7 +944,7 @@ const char *liferules::setrule(const char *rulestring, lifealgo *algo) {
             *t = c ;
             t++ ;
             break ;
-   
+
          // wolfram
          case 'w':
             // check if at beginning of string
@@ -962,7 +962,7 @@ const char *liferules::setrule(const char *rulestring, lifealgo *algo) {
                totalistic = false ;
             }
             break ;
-   
+
          // minus
          case '-':
             // check if previous character is a digit
@@ -974,7 +974,7 @@ const char *liferules::setrule(const char *rulestring, lifealgo *algo) {
             t++ ;
             totalistic = false ;
             break ;
-   
+
          // other characters
          default:
             // ignore space
@@ -985,7 +985,7 @@ const char *liferules::setrule(const char *rulestring, lifealgo *algo) {
                   // copy character
                   *t = c ; 
                   t++ ;
-   
+
                   // check if totalistic (i.e. found a valid non-digit)
                   digit = int(charpos - valid_rule_letters) ;
                   if (digit > 8) {
@@ -1008,35 +1008,35 @@ const char *liferules::setrule(const char *rulestring, lifealgo *algo) {
             }
             break ;
          }
-   
+
          // next character
          r++ ;
       }
-   
+
       // ensure null terminated
       *t = 0 ;
-   
+
       // don't allow empty rule string
       t = tidystring ;
       if (*t == 0) {
          return "Rule cannot be empty string." ;
       }
-   
+
       // can't have slash and underscore
       if (underscorepos && slashpos) {
          return "Can't have slash and underscore." ;
       }
-   
+
       // underscore only valid for non-totalistic rules
       if (underscorepos && totalistic) {
          return "Underscore not valid for totalistic rules, use slash." ;
       }
-   
+
       // if underscore defined then set the slash position
       if (underscorepos) {
          slashpos = underscorepos ;
       }
-   
+
       // check for Wolfram
       if (wolfram == 0) {
          // parse Wolfram 1D rule
@@ -1064,24 +1064,38 @@ const char *liferules::setrule(const char *rulestring, lifealgo *algo) {
                t[len - 1] = 0 ;
             }
          }
-   
+
          // at least one of slash, b or s must be present
          if (!(slashpos || bpos || spos)) {
             return "Rule must contain a slash or B or S." ;
          }
-      
+
          // digits can not be greater than the number of neighbors for the defined neighborhood
          if (maxdigit > neighbors) {
             return "Digit greater than neighborhood allows." ;
          }
-   
+
          // if slash present and both b and s then one must be each side of the slash
          if (slashpos && bpos && spos) {
             if ((bpos < slashpos && spos < slashpos) || (bpos > slashpos && spos > slashpos)) {
                return "B and S must be either side of slash." ;
             }
          }
-   
+
+         // if slash present and only one of b and s then the letter must be at the start or immediately after the slash
+         if (slashpos && ((bpos && !spos) || (spos && !bpos))) {
+            if (bpos) {
+               if (!(bpos == tidystring || bpos == slashpos + 1)) {
+                  return "B must be at start of rule or immediately after slash." ;
+               }
+            }
+            else {
+               if (!(spos == tidystring || spos == slashpos + 1)) {
+                  return "S must be at start of rule or immediately after slash." ;
+               }
+            }
+         }
+
          // check if there was a slash to divide birth from survival
          if (!slashpos) {
             // check if both b and s exist
@@ -1089,36 +1103,52 @@ const char *liferules::setrule(const char *rulestring, lifealgo *algo) {
                // determine whether b or s is first
                if (bpos < spos) {
                   // skip b and cut the string using s
-                  bpos++ ;
-                  *spos = 0 ;
-                  spos++ ;
+                  removeChar(bpos, 'b') ;
+                  *(spos - 1) = 0 ;
                }
                else {
                   // skip s and cut the string using b
-                  spos++ ;
-                  *bpos = 0 ;
-                  bpos++ ;
+                  removeChar(spos, 's') ;
+                  *(bpos - 1) = 0 ;
                }
             }
             else {
                // just bpos
                if (bpos) {
-                  bpos = t ;
-                  removeChar(bpos, 'b') ;
-                  spos = bpos + strlen(bpos) ;
+                  if (bpos == t) {
+                        // bpos at beginning of string so remove 'b' and set spos to the null at the end
+                        removeChar(bpos, 'b') ;
+                        spos = bpos + strlen(bpos) ;
+                  }
+                  else {
+                        // bpos not at beginning so set spos to beginning and null the 'b' in bpos and increment
+                        *bpos = 0 ;
+                        bpos++ ;
+                        spos = t ;
+                  }
                }
                else {
                   // just spos
-                  spos = t ;
-                  removeChar(spos, 's') ;
-                  bpos = spos + strlen(spos) ;
+                  if (spos) {
+                     if (spos == t) {
+                        // spos at beginning of string so remove 's' and set bpos to the null at the end
+                        removeChar(spos, 's') ;
+                        bpos = spos + strlen(spos) ;
+                     }
+                     else {
+                        // spos not at beginning so set bpos to beginning and null the 's' in spos and increment
+                        *spos = 0 ;
+                        spos++ ;
+                        bpos = t ;
+                     }
+                  }
                }
             }
          }
          else {
             // slash exists so set determine which part is b and which is s
             *slashpos = 0 ;
-   
+
             // check if b or s are defined
             if (bpos || spos) {
                // check for birth first
@@ -1132,7 +1162,7 @@ const char *liferules::setrule(const char *rulestring, lifealgo *algo) {
                   bpos = slashpos + 1 ;
                   spos = t ;
                }
-   
+
                // remove b or s from rule parts
                removeChar(bpos, 'b') ;
                removeChar(spos, 's') ;
@@ -1143,7 +1173,7 @@ const char *liferules::setrule(const char *rulestring, lifealgo *algo) {
                bpos = slashpos + 1 ;
             }
          }
-   
+
          // if not totalistic and a part exists it must start with a digit
          if (!totalistic) {
             // check birth
@@ -1151,26 +1181,29 @@ const char *liferules::setrule(const char *rulestring, lifealgo *algo) {
             if (c && (c < '0' || c > '8')) {
                return "Non-totalistic birth must start with a digit." ;
             }
+
             // check survival
             c = *spos ;
             if (c && (c < '0' || c > '8')) {
                return "Non-totalistic survival must start with a digit." ;
             }
+
             // one of birth or survival must be at the start of the rule
             if (!(bpos == tidystring || spos == tidystring)) {
                return "Invalid characters at start of rule." ;
             }
          }
-      
+
          // if not totalistic then neighborhood must be Moore
          if (!totalistic && neighbormask != MOORE) {
             return "Non-totalistic only supported with Moore neighborhood." ;
          }
-   
+
          // validate letters used against each specified neighbor count
          if (!lettersValid(bpos)) {
             return "Letter not valid for birth neighbor count." ;
          }
+
          if (!lettersValid(spos)) {
             return "Letter not valid for survival neighbor count." ;
          }
