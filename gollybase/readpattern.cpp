@@ -678,6 +678,15 @@ static void LookForLocalRule(const char *filename, lifealgo &imp) {
     FILE* rlefile = fopen(filename, "rt");
     if (rlefile == 0) return;
     
+    #ifdef WIN32
+        // on Windows we need to reopen the file in binary mode so ftell
+        // works correctly if the file doesn't end lines with CR+LF
+        // (which is the case when clipboard data is saved in a temporary file)
+        fclose(rlefile);
+        rlefile = fopen(filename, "rb");
+        if (rlefile == 0) return; // should never happen but play safe
+    #endif
+    
     // look in given RLE file for a line starting with @RULE name
     char linebuf[LINESIZE + 1];
     linereader reader(rlefile);
