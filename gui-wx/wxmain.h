@@ -8,6 +8,7 @@
 #include "wx/dirctrl.h"    // for wxGenericDirCtrl
 #include "wx/treectrl.h"   // for wxTreeCtrl, wxTreeEvent
 #include "wx/dataobj.h"    // for wxTextDataObject
+#include "wx/webrequest.h" // for wxWebRequest, wxWebRequestEvent
 
 #include "bigint.h"        // for bigint
 #include "lifealgo.h"      // for lifealgo
@@ -165,6 +166,10 @@ public:
     // and to allow showing/hiding them on all platforms
     wxScrollBar* hbar;
     wxScrollBar* vbar;
+
+    // for downloading files
+    void OnWebRequestState(wxWebRequestEvent& evt);
+    bool DownloadURL(const wxString& url, const wxString& filepath);
     
 private:
     // any class wishing to process wxWidgets events must use this macro
@@ -195,6 +200,11 @@ private:
     void ClearAllScripts();
     wxString GetScriptFileName(const wxString& text);
     void OpenZipFile(const wxString& path);
+
+    // for downloading files
+    wxWebRequest webRequest;
+    wxString download_file;
+    bool download_complete;
     
     // control functions
     void DisplayPattern();

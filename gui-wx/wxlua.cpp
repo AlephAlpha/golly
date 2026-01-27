@@ -512,6 +512,20 @@ static int g_getinfo(lua_State* L)
 
 // -----------------------------------------------------------------------------
 
+static int g_geturl(lua_State* L)
+{
+    AUTORELEASE_POOL
+    CheckEvents(L);
+
+    bool result = mainptr->DownloadURL(wxString(luaL_checkstring(L, 1), LUA_ENC),
+                                       wxString(luaL_checkstring(L, 2), LUA_ENC));
+    lua_pushboolean(L, result);
+    
+    return 1;   // result is a bool
+}
+
+// -----------------------------------------------------------------------------
+
 static int g_new(lua_State* L)
 {
     AUTORELEASE_POOL
@@ -3114,6 +3128,7 @@ static const struct luaL_Reg gollyfuncs [] = {
     { "getfiles",     g_getfiles },     // return array of files in specified directory
     { "getpath",      g_getpath },      // return the path to the current opened pattern
     { "getinfo",      g_getinfo },      // return comments from pattern file
+    { "geturl",       g_geturl },       // download given url and save in given path
     // editing
     { "new",          g_new },          // create new universe and set window title
     { "cut",          g_cut },          // cut selection to clipboard

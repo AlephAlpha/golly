@@ -8,9 +8,6 @@
 
 #include "wx/wxhtml.h"          // for wxHtmlWindow
 #include "wx/file.h"            // for wxFile
-#include "wx/webrequest.h"      // for wxWebRequest
-#include "wx/wfstream.h"        // for wxFileOutputStream, wxFileInputStream
-#include "wx/zipstrm.h"         // for wxZipInputStream
 
 #include "lifealgo.h"           // for lifealgo class
 #include "ruleloaderalgo.h"     // for noTABLEorTREE
@@ -40,10 +37,6 @@ public:
     
     bool infront;     // help window is active?
 
-    // for downloading files using wxWebRequest
-    void OnWebRequestState(wxWebRequestEvent& evt);
-    bool DownloadURL(const wxString& url, const wxString& filepath);
-
 private:
     // ids for buttons in help window (see also wxID_CLOSE)
     enum {
@@ -65,11 +58,6 @@ private:
     void OnClose(wxCloseEvent& event);
     
     wxStaticText* status;   // status line at bottom of help window
-
-    // for downloading files
-    wxWebRequest webRequest;
-    wxString download_file;
-    bool download_complete;
     
     // any class wishing to process wxWidgets events must use this macro
     DECLARE_EVENT_TABLE()
@@ -450,85 +438,6 @@ void HelpFrame::OnClose(wxCloseEvent& WXUNUSED(event))
 
 // -----------------------------------------------------------------------------
 
-void HelpFrame::OnWebRequestState(wxWebRequestEvent& evt)
-{
-    bool stillActive = false;
-
-    switch (evt.GetState()) {
-        case wxWebRequest::State_Completed:
-            if (!wxRenameFile(evt.GetDataFile(), download_file)) {
-                Warning(_("Could not move downloaded file!"));
-            } else {
-                download_complete = true;
-            }
-            break;
-
-        case wxWebRequest::State_Failed:
-            Warning(wxString::Format("Web request failed:\n%s", evt.GetErrorDescription()));
-            break;
-
-        case wxWebRequest::State_Cancelled:
-            break;
-
-        case wxWebRequest::State_Unauthorized:
-            // should never happen???
-            Warning(_("Unauthorized request!"));
-            break;
-
-        case wxWebRequest::State_Active:
-            stillActive = true;
-            break;
-
-        case wxWebRequest::State_Idle:
-            // do nothing
-            break;
-    }
-
-    if (!stillActive) {
-        webRequest = wxWebRequest(); // terminate DownloadURL's while loop
-    }
-}
-
-// -----------------------------------------------------------------------------
-
-bool HelpFrame::DownloadURL(const wxString& url, const wxString& filepath)
-{
-    // see wxWidgets-3.1.5/samples/webrequest/webrequest.cpp
-
-    // create a request for the specified URL
-    webRequest = wxWebSession::GetDefault().CreateRequest(this, url);
-
-    // bind event handler for state change
-    Bind(wxEVT_WEBREQUEST_STATE, &HelpFrame::OnWebRequestState, this);
-
-    webRequest.SetStorage(wxWebRequest::Storage_File);
-    download_file = filepath;
-    download_complete = false;
-    
-    // start the web request (events will be sent to OnWebRequestState)
-    webRequest.Start();
-    
-    BeginProgress(_("Downloading ") + url.AfterLast('/'));
-
-    // wait until the web request completes
-    while (webRequest.IsOk()) {
-        double downcount = webRequest.GetBytesReceived();
-        double expected = webRequest.GetBytesExpectedToReceive();
-        char msg[128];
-        sprintf(msg, "File size: %.2f MB", downcount/1048576.0);
-        if (AbortProgress(downcount/expected, wxString(msg,wxConvLocal))) {
-            webRequest.Cancel();
-        }
-        wxYield();
-    }
-    
-    EndProgress();
-    
-    return download_complete;
-}
-
-// -----------------------------------------------------------------------------
-
 void LoadRule(const wxString& rulestring, bool fromfile)
 {
     wxString oldrule = wxString(currlayer->algo->getrule(),wxConvLocal);
@@ -728,7 +637,7 @@ void GetURL(const wxString& url)
     }
     
     // try to download the file
-    if ( !helpptr->DownloadURL(fullurl, filepath) ) return;
+    if ( !mainptr->DownloadURL(fullurl, filepath) ) return;
     
     if (htmlwin->editlink) {
         mainptr->EditFile(filepath);

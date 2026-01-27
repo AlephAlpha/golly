@@ -1826,3 +1826,85 @@ void MainFrame::ShowPrefsDialog(const wxString& page)
     // safer to update everything even if user hit Cancel
     UpdateEverything();
 }
+
+// -----------------------------------------------------------------------------
+
+void MainFrame::OnWebRequestState(wxWebRequestEvent& evt)
+{
+    bool stillActive = false;
+
+    switch (evt.GetState()) {
+        case wxWebRequest::State_Completed:
+            if (!wxRenameFile(evt.GetDataFile(), download_file)) {
+                Warning(_("Could not save downloaded file!"));
+            } else {
+                download_complete = true;
+            }
+            break;
+
+        case wxWebRequest::State_Failed:
+            Warning(wxString::Format("Web request failed:\n%s", evt.GetErrorDescription()));
+            break;
+
+        case wxWebRequest::State_Cancelled:
+            break;
+
+        case wxWebRequest::State_Unauthorized:
+            // should never happen
+            Warning(_("Unauthorized request!"));
+            break;
+
+        case wxWebRequest::State_Active:
+            stillActive = true;
+            break;
+
+        case wxWebRequest::State_Idle:
+            // do nothing
+            break;
+    }
+
+    if (!stillActive) {
+        webRequest = wxWebRequest(); // terminate DownloadURL's while loop
+    }
+}
+
+// -----------------------------------------------------------------------------
+
+bool MainFrame::DownloadURL(const wxString& url, const wxString& filepath)
+{
+    // create a request for the specified URL
+    webRequest = wxWebSession::GetDefault().CreateRequest(this, url);
+    if (!webRequest.IsOk()) {
+        // should never happen
+        Warning(_("Failed to create WebRequest!"));
+        return false;
+    }
+    
+    // bind event handler for state change
+    Bind(wxEVT_WEBREQUEST_STATE, &MainFrame::OnWebRequestState, this);
+
+    webRequest.SetStorage(wxWebRequest::Storage_File);
+    download_file = filepath;
+    download_complete = false;
+    
+    // start the web request (events will be sent to OnWebRequestState)
+    webRequest.Start();
+    
+    BeginProgress(_("Downloading ") + url.AfterLast('/'));
+
+    // wait until the web request completes
+    while (webRequest.IsOk()) {
+        double downcount = webRequest.GetBytesReceived();
+        double expected = webRequest.GetBytesExpectedToReceive();
+        char msg[128];
+        sprintf(msg, "File size: %.2f MB", downcount/1048576.0);
+        if (AbortProgress(downcount/expected, wxString(msg,wxConvLocal))) {
+            webRequest.Cancel();
+        }
+        wxYield();
+    }
+    
+    EndProgress();
+    
+    return download_complete;
+}

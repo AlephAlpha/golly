@@ -26,7 +26,7 @@ in lots of interesting ways.
 The Scripts folder supplied with Golly contains a number of example Lua scripts:
 <p>
 <dd>
-<table cellspacing=0 cellpadding=0 width=520>
+<table cellspacing=0 cellpadding=0 width=580>
 <tr>
    <td><b>1D.lua</b></td><td width=10> </td>
    <td> &mdash; for exploring one-dimensional cellular automata</td>
@@ -276,6 +276,7 @@ or you can search for individual commands alphabetically:
 <a href="#getselrect"><b>getselrect</b></a><br>
 <a href="#getstep"><b>getstep</b></a><br>
 <a href="#getstring"><b>getstring</b></a><br>
+<a href="#geturl"><b>geturl</b></a><br>
 <a href="#getview"><b>getview</b></a><br>
 <a href="#getwidth"><b>getwidth</b></a><br>
 <a href="#getxy"><b>getxy</b></a><br>
@@ -293,11 +294,11 @@ or you can search for individual commands alphabetically:
 <a href="#open"><b>open</b></a><br>
 <a href="#opendialog"><b>opendialog</b></a><br>
 <a href="#overlay"><b>overlay</b></a><br>
-<a href="#ovtable"><b>ovtable</b></a><br>
-<a href="#os"><b>os</b></a>
+<a href="#ovtable"><b>ovtable</b></a>
 </td>
 <td valign=top width=40> </td>
 <td valign=top>
+<a href="#os"><b>os</b></a><br>
 <a href="#parse"><b>parse</b></a><br>
 <a href="#paste"><b>paste</b></a><br>
 <a href="#putcells"><b>putcells</b></a><br>
@@ -318,11 +319,11 @@ or you can search for individual commands alphabetically:
 <a href="#setcolors"><b>setcolors</b></a><br>
 <a href="#setcursor"><b>setcursor</b></a><br>
 <a href="#setdir"><b>setdir</b></a><br>
-<a href="#setgen"><b>setgen</b></a><br>
-<a href="#setlayer"><b>setlayer</b></a>
+<a href="#setgen"><b>setgen</b></a>
 </td>
 <td valign=top width=40> </td>
 <td valign=top>
+<a href="#setlayer"><b>setlayer</b><br>
 <a href="#setmag"><b>setmag</b></a><br>
 <a href="#setname"><b>setname</b></a><br>
 <a href="#setoption"><b>setoption</b></a><br>
@@ -521,6 +522,19 @@ Return the pathname of the current open pattern. Returns "" if the current
 pattern is new and has not been saved.
 </dd>
 <dd> Example: <b>local path = g.getpath()</b></dd>
+</p>
+
+<a name="geturl"></a><p><dt><b>geturl(<i>url, filepath</i>)</b></dt>
+<dd>
+Download a file from the given URL and save it as the given path.
+A non-absolute path is relative to the location of the script.
+If the file is successfully downloaded and saved then the function returns true,
+otherwise false is returned and a suitable error message will be displayed.
+</dd>
+<dd> Example:</dd>
+<dd> <b>local savepath = g.getdir("download").."cat.mc.gz"</b></dd>
+<dd> <b>if g.geturl("http://golly.sourceforge.net/patterns/caterpillar.mc.gz", savepath) then</b></dd>
+<dd> <b>g.open(savepath) else g.exit("download failed") end</b></dd>
 </p>
 
 <p><a name="editing"></a>&nbsp;<br>
