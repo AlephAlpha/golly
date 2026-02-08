@@ -60,6 +60,10 @@ The Scripts folder supplied with Golly contains a number of example Lua scripts:
    <td> &mdash; calculates the density of the current pattern</td>
 </tr>
 <tr>
+   <td><b>download.lua</b></td><td width=10> </td>
+   <td> &mdash; shows how to use the <a href="#geturl"><b>geturl</b></a> command</td>
+</tr>
+<tr>
    <td><b>draw-lines.lua</b></td><td width=10> </td>
    <td> &mdash; lets you draw one or more straight lines</td>
 </tr>
@@ -474,7 +478,7 @@ All these files are deleted when Golly quits.
 <p>
 <dd>
 <b>"rules"</b> &mdash; the user-specific rules directory
-set in <a href="prefs:control">Preferences > Control</a>.
+(set in <a href="prefs:control">Preferences > Control</a>).
 </dd>
 <p>
 <dd>
@@ -482,7 +486,8 @@ set in <a href="prefs:control">Preferences > Control</a>.
 </dd>
 <p>
 <dd>
-<b>"download"</b> &mdash; the directory Golly uses to store downloaded files.
+<b>"download"</b> &mdash; the directory Golly uses to store downloaded files
+(set in <a href="prefs:file">Preferences > File</a>).
 </dd>
 <p>
 <dd>
@@ -498,7 +503,7 @@ Set the specified directory to the given path (which must be a full path to
 an existing directory).  All the directory names listed above are allowed,
 except for "app", "data" and "temp".
 </dd>
-<dd> Example: <b>g.setdir("download", "/path/to/my-downloads/")</b></dd>
+<dd> Example: <b>g.setdir("download", g.getdir("app").."My-files/My-downloads/")</b></dd>
 </p>
 
 <a name="getfiles"></a><p><dt><b>getfiles(<i>dirpath</i>)</b></dt>
@@ -526,10 +531,12 @@ pattern is new and has not been saved.
 
 <a name="geturl"></a><p><dt><b>geturl(<i>url, filepath</i>)</b></dt>
 <dd>
-Download a file from the given URL and save it as the given path.
+Download a file from the given URL and save it as the given path
+(overwriting any existing file).
 A non-absolute path is relative to the location of the script.
 If the file is successfully downloaded and saved then the function returns true,
-otherwise false is returned and a suitable error message will be displayed.
+otherwise false is returned and a warning dialog with a suitable error message
+is also displayed.
 </dd>
 <dd> Example:</dd>
 <dd> <b>local savepath = g.getdir("download").."cat.mc.gz"</b></dd>
