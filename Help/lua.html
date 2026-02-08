@@ -508,12 +508,14 @@ except for "app", "data" and "temp".
 
 <a name="getfiles"></a><p><dt><b>getfiles(<i>dirpath</i>)</b></dt>
 <dd>
-Return the contents of the given directory as an array of strings.
+Return the contents of the given directory as an array of strings,
+or <b>nil</b> if the directory doesn't exist.
 A non-absolute directory path is relative to the location of the script.
 File names are returned first, then subdirectory names.  The latter names end
 with the platform-specific path separator ("/" on Mac and Linux, "\" on Windows).
-See <a href="edit:Scripts/Lua/slide-show.lua">slide-show.lua</a> for an example.
 </dd>
+<dd> Example: <b>local files = g.getfiles(g.getdir("download"))</b></dd>
+</p>
 
 <a name="getinfo"></a><p><dt><b>getinfo()</b></dt>
 <dd>

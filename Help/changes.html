@@ -10,6 +10,8 @@
 <li> Added a <a href="lua.html#geturl">geturl</a> command so Lua scripts can download
      a file from a given URL.  A new script, <a href="open:Scripts/Lua/download.lua">download.lua</a>,
      illustrates how it can be used.
+<li> The <a href="lua.html#getfiles">getfiles</a> command now returns <b>nil</b> if the given directory
+     doesn't exist (more useful than aborting the script with an error message).
 <li> The rule parser now allows Hensel format rules without a slash.
 <li> Fixed a spurious warning on Windows when opening clipboard data containing a local @RULE.
 </ul>

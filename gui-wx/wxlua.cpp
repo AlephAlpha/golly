@@ -457,7 +457,9 @@ static int g_getfiles(lua_State* L)
     wxString dirpath = wxString(dirname, LUA_ENC);
 
     if (!wxFileName::DirExists(dirpath)) {
-        GollyError(L, "getfiles error: given directory does not exist.");
+        // return nil so scripts can easily detect a non-existent directory
+        lua_pushnil(L);
+        return 1;   // result is nil
     }
 
     lua_newtable(L);
