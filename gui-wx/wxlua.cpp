@@ -33,6 +33,8 @@
 
 #include "wx/filename.h"    // for wxFileName
 #include "wx/dir.h"         // for wxDir
+#include "wx/zipstrm.h"     // for wxZipEntry, wxZipInputStream
+#include "wx/wfstream.h"    // for wxFileOutputStream, wxFFileInputStream
 
 #include "bigint.h"
 #include "lifealgo.h"
@@ -452,10 +454,7 @@ static int g_getfiles(lua_State* L)
     AUTORELEASE_POOL
     CheckEvents(L);
     
-    const char* dirname = luaL_checkstring(L, 1);
-    
-    wxString dirpath = wxString(dirname, LUA_ENC);
-
+    wxString dirpath = wxString(luaL_checkstring(L, 1), LUA_ENC);
     if (!wxFileName::DirExists(dirpath)) {
         // return nil so scripts can easily detect a non-existent directory
         lua_pushnil(L);
@@ -519,8 +518,97 @@ static int g_geturl(lua_State* L)
     AUTORELEASE_POOL
     CheckEvents(L);
 
-    bool result = mainptr->DownloadURL(wxString(luaL_checkstring(L, 1), LUA_ENC),
-                                       wxString(luaL_checkstring(L, 2), LUA_ENC));
+    wxString url = wxString(luaL_checkstring(L, 1), LUA_ENC);
+    wxString dir = wxString(luaL_checkstring(L, 2), LUA_ENC);
+    
+    // check if caller wants to unzip a .zip file
+    bool unzip = false;
+    if (url.Lower().EndsWith(wxT(".zip?unzip"))) {
+        unzip = true;
+        // remove "?unzip" from url
+        url = url.BeforeLast('?');
+    }
+    
+    // extract filename from end of url and replace any "%20" with spaces
+    wxString filename = url.AfterLast('/');
+    if (filename == url || filename == wxEmptyString) {
+        GollyError(L, "geturl error: URL must end with a filename.");
+    }
+    filename.Replace("%20"," ");
+    
+    if (dir == wxEmptyString) {
+        // file will be saved in same directory as script
+    } else {
+        // ensure dir ends with wxFILE_SEP_PATH
+        if (dir.Last() != wxFILE_SEP_PATH) {
+            dir += wxFILE_SEP_PATH;
+        }
+        // check that dir is a valid directory
+        if (!wxFileName::DirExists(dir)) {
+            GollyError(L, "geturl error: unknown directory.");
+        }
+    }
+
+    bool result = mainptr->DownloadURL(url, dir + filename);
+    
+    if (result && unzip) {
+        // unzip the .zip file into a new subdirectory in dir
+        bool dircreated = false;
+        wxFFileInputStream instream(dir + filename);
+        if (!instream.Ok()) {
+            GollyError(L, "geturl error: could not create input stream for zip file.");
+        }
+        wxZipInputStream zip(instream);
+        // examine each entry in zip file and create all the subdirectories and files
+        wxZipEntry* entry;
+        while ((entry = zip.GetNextEntry()) != NULL) {
+            wxString name = entry->GetName();      
+            if (name.StartsWith(wxT("__MACOSX")) || name.EndsWith(wxT(".DS_Store"))) {
+                // ignore meta-data stuff in zip file created on Mac
+            } else if (entry->IsDir()) {
+                // create directory
+                wxString dirpath = dir + name;
+                if (!dircreated && wxFileName::DirExists(dirpath)) {
+                    // remove existing directory (only if 1st one seen)
+                    wxFileName::Rmdir(dirpath, wxPATH_RMDIR_RECURSIVE);
+                }
+                if (!wxFileName::Mkdir(dirpath, 0777, wxPATH_MKDIR_FULL)) {
+                    delete entry;
+                    GollyError(L, "geturl error: failed to create subdirectory.");
+                }
+                dircreated = true;
+            } else {
+                // create file
+                if (!dircreated) {
+                    // if filename is Foo.zip we want to create or replace dir/Foo/
+                    wxString zipdir = dir + filename.BeforeLast('.');
+                    zipdir += wxFILE_SEP_PATH;
+                    // remove any existing zipdir
+                    if (wxFileName::DirExists(zipdir)) {
+                        wxFileName::Rmdir(zipdir, wxPATH_RMDIR_RECURSIVE);
+                    }
+                    if (!wxFileName::Mkdir(zipdir, 0777, wxPATH_MKDIR_FULL)) {
+                        GollyError(L, "geturl error: failed to zip directory.");
+                    }
+                    dircreated = true;
+                    dir = zipdir;
+                }
+                wxString filepath = dir + name;
+                wxFileOutputStream outstream(filepath);
+                bool ok = outstream.Ok();
+                if (ok) {
+                    zip.Read(outstream);
+                    ok = (outstream.GetLastError() == wxSTREAM_NO_ERROR);
+                }
+                if (!ok) {
+                    delete entry;
+                    GollyError(L, "geturl error: failed to create file.");
+                }
+            }
+            delete entry;
+        }
+    }
+    
     lua_pushboolean(L, result);
     
     return 1;   // result is a bool
@@ -1162,77 +1250,6 @@ static int g_getcells(lua_State* L)
     
     return 1;   // result is a cell array
 }
-
-// -----------------------------------------------------------------------------
-
-// maybe only use algo->getcells method if algo is hash-based???!!!
-// (needs more thought and more testing)
-
-#if 0
-
-static int g_getcells2(lua_State* L)
-{
-    AUTORELEASE_POOL
-    CheckEvents(L);
-
-    luaL_checktype(L, 1, LUA_TTABLE);   // rect array with 0 or 4 ints
-
-    lua_newtable(L);
-    int arraylen = 0;
-    
-    int numints = luaL_len(L, 1);
-    if (numints == 0) {
-        // return empty cell array
-    } else if (numints == 4) {
-        lua_rawgeti(L, 1, 1); int ileft = luaL_checkinteger(L,-1); lua_pop(L,1);
-        lua_rawgeti(L, 1, 2); int itop  = luaL_checkinteger(L,-1); lua_pop(L,1);
-        lua_rawgeti(L, 1, 3); int wd    = luaL_checkinteger(L,-1); lua_pop(L,1);
-        lua_rawgeti(L, 1, 4); int ht    = luaL_checkinteger(L,-1); lua_pop(L,1);
-        
-        const char* err = GSF_checkrect(ileft, itop, wd, ht);
-        if (err) GollyError(L, err);
-        
-        int iright = ileft + wd - 1;
-        int ibottom = itop + ht - 1;
-        int cx, cy;
-        lifealgo* curralgo = currlayer->algo;
-        bool multistate = curralgo->NumCellStates() > 2;
-        
-        unsigned char* cellmem = (unsigned char*) malloc(wd * ht);
-        if (cellmem == NULL) {
-            GollyError(L, "getcells error: not enough memory.");
-        }
-        curralgo->getcells(cellmem, ileft, itop, wd, ht);
-        unsigned char* cellptr = cellmem;
-        
-        for ( cy=itop; cy<=ibottom; cy++ ) {
-            for ( cx=ileft; cx<=iright; cx++ ) {
-                unsigned char state = *cellptr++;
-                if (state > 0) {
-                    // found next live cell
-                    lua_pushinteger(L, cx); lua_rawseti(L, -2, ++arraylen);
-                    lua_pushinteger(L, cy); lua_rawseti(L, -2, ++arraylen);
-                    if (multistate) {
-                        lua_pushinteger(L, state); lua_rawseti(L, -2, ++arraylen);
-                    }
-                }
-            }
-        }
-        if (multistate && arraylen > 0 && (arraylen & 1) == 0) {
-            // add padding zero
-            lua_pushinteger(L, 0); lua_rawseti(L, -2, ++arraylen);
-        }
-        
-        free(cellmem);
-        
-    } else {
-        GollyError(L, "getcells error: array must be {} or {x,y,wd,ht}.");
-    }
-    
-    return 1;   // result is a cell array
-}
-
-#endif // #if 0
 
 // -----------------------------------------------------------------------------
 
@@ -3146,7 +3163,6 @@ static const struct luaL_Reg gollyfuncs [] = {
     { "evolve",       g_evolve },       // generate pattern contained in given cell array
     { "putcells",     g_putcells },     // paste given cell array into current universe
     { "getcells",     g_getcells },     // return cell array in given rectangle
-    // { "getcells2",     g_getcells2 },     // experimental version (needs more thought!!!)
     { "join",         g_join },         // return concatenation of given cell arrays
     { "hash",         g_hash },         // return hash value for pattern in given rectangle
     { "getclip",      g_getclip },      // return pattern in clipboard (as wd, ht, cell array)

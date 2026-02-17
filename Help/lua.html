@@ -531,20 +531,32 @@ pattern is new and has not been saved.
 <dd> Example: <b>local path = g.getpath()</b></dd>
 </p>
 
-<a name="geturl"></a><p><dt><b>geturl(<i>url, filepath</i>)</b></dt>
+<a name="geturl"></a><p><dt><b>geturl(<i>url, dirpath</i>)</b></dt>
 <dd>
-Download a file from the given URL and save it as the given path
-(overwriting any existing file).
-A non-absolute path is relative to the location of the script.
+Download a file from the given URL and save it in the given directory
+(overwriting any existing file).  The directory must exist and
+a non-absolute path is relative to the location of the script.
 If the file is successfully downloaded and saved then the function returns true,
 otherwise false is returned and a warning dialog with a suitable error message
 is also displayed.
 </dd>
 <dd> Example:</dd>
-<dd> <b>local savepath = g.getdir("download").."cat.mc.gz"</b></dd>
-<dd> <b>if g.geturl("http://golly.sourceforge.net/patterns/caterpillar.mc.gz", savepath) then</b></dd>
-<dd> <b>g.open(savepath) else g.exit("download failed") end</b></dd>
+<dd> <b>local dir = g.getdir("download")</b></dd>
+<dd> <b>if g.geturl("http://golly.sourceforge.net/patterns/caterpillar.mc.gz", dir) then</b></dd>
+<dd> <b>g.open(dir.."caterpillar.mc.gz") else g.exit("download failed") end</b></dd>
 </p>
+
+<p><dd>
+If the given URL ends with ".zip?unzip" then the zip file will be downloaded into
+the given directory and then unzipped into a corresponding subdirectory
+(replacing any existing subdirectory).
+</dd>
+<dd> Example:</dd>
+<dd> <b>local dir = g.getdir("download")</b></dd>
+<dd> <b>if g.geturl("http://golly.sourceforge.net/patterns/JustFriends.zip?unzip", dir) then</b></dd>
+<dd> <b>os.remove(dir.."JustFriends.zip") else g.exit("download failed") end</b></dd>
+</p>
+
 
 <p><a name="editing"></a>&nbsp;<br>
 EDITING COMMANDS
