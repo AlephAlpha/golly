@@ -31,7 +31,7 @@ static string result;
 
 const char* ruletable_algo::LoadTable(FILE* rulefile, int lineno, char endchar, const char* s)
 {
-    // set static vars so LoadRuleTable() will load table data from .rule file
+    // set static vars so LoadRuleTable will load table data from .rule file
     static_rulefile = rulefile;
     static_lineno = lineno;
     static_endchar = endchar;
@@ -318,10 +318,19 @@ string ruletable_algo::LoadRuleTable(string rule)
             oss << "Error reading " << full_filename << ": one or more of n_states, neighborhood or symmetries missing\nbefore first variable";
             return oss.str();
          }
-         // parse the rest of the line for the variable
-         vector<string> tokens = tokenize(line,"= {,}");
+         // parse the line for the variable name
+         vector<string> tokens = tokenize(line,"= ");
          string variable_name = tokens[1];
+         // parse the line again for the states
+         tokens = tokenize(line,"= {,}");
          vector<state> states;
+         if(tokens[1] != variable_name)
+         {
+            // this can happen if variable_name contains a delimiter like a comma
+            ostringstream oss;
+            oss << "Error reading " << full_filename << " on line " << lineno << ": " << line << " - bad variable name";
+            return oss.str();
+         }  
          if(tokens.size()<3)
          {
             ostringstream oss;

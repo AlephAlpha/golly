@@ -443,6 +443,7 @@ void LoadRule(const wxString& rulestring, bool fromfile)
     wxString oldrule = wxString(currlayer->algo->getrule(),wxConvLocal);
     int oldmaxstate = currlayer->algo->NumCellStates() - 1;
     const char* err;
+    wxString badrule;
     
     // selection might change if grid becomes smaller,
     // so save current selection for RememberRuleChange/RememberAlgoChange
@@ -467,6 +468,7 @@ void LoadRule(const wxString& rulestring, bool fromfile)
         if (currlayer->algtype == rule_loader_algo) {
             // RuleLoader is current algo so no need to switch
             err = currlayer->algo->setrule( rulestring.mb_str(wxConvLocal) );
+            if (err) badrule = wxString(err,wxConvLocal);
         } else {
             // switch to RuleLoader algo
             lifealgo* tempalgo = CreateNewUniverse(rule_loader_algo);
@@ -516,7 +518,8 @@ void LoadRule(const wxString& rulestring, bool fromfile)
             }
             RestoreRule(oldrule);
             wxString msg = _("The rule file is not valid:\n") + rulestring;
-            msg += _(".rule");
+            msg += _(".rule\n");
+            msg += badrule; // error message from setrule call
             Warning(msg);
             return;
         }
