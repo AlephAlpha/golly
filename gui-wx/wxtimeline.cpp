@@ -608,8 +608,10 @@ void TimelineBar::OnButtonUp(wxMouseEvent& event)
 void TimelineBar::AddButton(int id, const wxString& tip)
 {
     tlbutt[id] = new wxBitmapButton(this, id, normbutt[id], wxPoint(xpos,ypos),
-#if defined(__WXOSX_COCOA__) && wxCHECK_VERSION(3,0,0)
+#ifdef __WXMAC__
                                     wxSize(BUTTON_WD, BUTTON_HT), wxBORDER_SIMPLE
+#elif __WXGTK3__
+                                    wxSize(BUTTON_WD, BUTTON_HT), wxBORDER_NONE
 #else
                                     wxSize(BUTTON_WD, BUTTON_HT)
 #endif
