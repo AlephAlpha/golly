@@ -3362,10 +3362,10 @@ wxPanel* PrefsDialog::CreateFilePrefs(wxWindow* parent)
     minbox->SetMinSize( maxbox->GetMinSize() );
 
     wxSpinCtrl* spin1 = new MySpinCtrl(panel, PREF_MAX_PATTERNS, wxEmptyString,
-                                       wxDefaultPosition, wxSize(70, wxDefaultCoord));
+                                       wxDefaultPosition, wxDefaultSize);
 
     wxSpinCtrl* spin2 = new MySpinCtrl(panel, PREF_MAX_SCRIPTS, wxEmptyString,
-                                       wxDefaultPosition, wxSize(70, wxDefaultCoord));
+                                       wxDefaultPosition, wxDefaultSize);
 
     wxBoxSizer* hpbox = new wxBoxSizer(wxHORIZONTAL);
     hpbox->Add(maxbox, 0, wxALIGN_CENTER_VERTICAL, 0);
@@ -3437,7 +3437,7 @@ wxPanel* PrefsDialog::CreateEditPrefs(wxWindow* parent)
     hbox1->Add(new wxStaticText(panel, wxID_STATIC, _("Random fill percentage:")),
                0, wxALIGN_CENTER_VERTICAL, 0);
     wxSpinCtrl* spin1 = new MySpinCtrl(panel, PREF_RANDOM_FILL, wxEmptyString,
-                                       wxDefaultPosition, wxSize(70, wxDefaultCoord));
+                                       wxDefaultPosition, wxDefaultSize);
     hbox1->Add(spin1, 0, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, SPINGAP);
 
     // can_change_rule
@@ -3561,7 +3561,11 @@ wxPanel* PrefsDialog::CreateControlPrefs(wxWindow* parent)
     wxBoxSizer* hbox1 = new wxBoxSizer(wxHORIZONTAL);
     hbox1->Add(membox, 0, wxALIGN_CENTER_VERTICAL, 0);
     wxSpinCtrl* spin1 = new MySpinCtrl(panel, PREF_MAX_MEM, wxEmptyString,
-                                       wxDefaultPosition, wxSize(80, wxDefaultCoord));
+                                       #ifdef __WXMAC__
+                                           wxDefaultPosition, wxSize(70,wxDefaultCoord));
+                                       #else
+                                           wxDefaultPosition, wxDefaultSize);
+                                       #endif
     hbox1->Add(spin1, 0, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, SPINGAP);
 
     wxString memnote = algoinfo[algopos1]->canhash ? HASH_MEM_NOTE : NONHASH_MEM_NOTE;
@@ -3571,7 +3575,11 @@ wxPanel* PrefsDialog::CreateControlPrefs(wxWindow* parent)
     wxBoxSizer* hbox2 = new wxBoxSizer(wxHORIZONTAL);
     hbox2->Add(basebox, 0, wxALIGN_CENTER_VERTICAL, 0);
     wxSpinCtrl* spin2 = new MySpinCtrl(panel, PREF_BASE_STEP, wxEmptyString,
-                                       wxDefaultPosition, wxSize(80, wxDefaultCoord));
+                                       #ifdef __WXMAC__
+                                           wxDefaultPosition, wxSize(70,wxDefaultCoord));
+                                       #else
+                                           wxDefaultPosition, wxDefaultSize);
+                                       #endif
     hbox2->Add(spin2, 0, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, SPINGAP);
 
     wxString stepnote = algoinfo[algopos1]->canhash ? HASH_STEP_NOTE : NONHASH_STEP_NOTE;
@@ -3592,7 +3600,7 @@ wxPanel* PrefsDialog::CreateControlPrefs(wxWindow* parent)
     wxBoxSizer* hbox3 = new wxBoxSizer(wxHORIZONTAL);
     hbox3->Add(minbox, 0, wxALIGN_CENTER_VERTICAL, 0);
     wxSpinCtrl* spin3 = new MySpinCtrl(panel, PREF_MIN_DELAY, wxEmptyString,
-                                       wxDefaultPosition, wxSize(80, wxDefaultCoord));
+                                       wxDefaultPosition, wxDefaultSize);
     hbox3->Add(spin3, 0, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, SPINGAP);
     hbox3->Add(new wxStaticText(panel, wxID_STATIC, _("millisecs")),
                0, wxALIGN_CENTER_VERTICAL, 0);
@@ -3600,7 +3608,7 @@ wxPanel* PrefsDialog::CreateControlPrefs(wxWindow* parent)
     wxBoxSizer* hbox4 = new wxBoxSizer(wxHORIZONTAL);
     hbox4->Add(maxbox, 0, wxALIGN_CENTER_VERTICAL, 0);
     wxSpinCtrl* spin4 = new MySpinCtrl(panel, PREF_MAX_DELAY, wxEmptyString,
-                                       wxDefaultPosition, wxSize(80, wxDefaultCoord));
+                                       wxDefaultPosition, wxDefaultSize);
     hbox4->Add(spin4, 0, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, SPINGAP);
     hbox4->Add(new wxStaticText(panel, wxID_STATIC, _("millisecs")),
                0, wxALIGN_CENTER_VERTICAL, 0);
@@ -3639,13 +3647,9 @@ wxPanel* PrefsDialog::CreateControlPrefs(wxWindow* parent)
     vbox->AddSpacer(15);
     vbox->Add(notebox, 0, wxLEFT, LRGAP);
 
-    // init control values;
-    // to avoid a wxGTK bug we use SetRange and SetValue rather than specifying
-    // the min,max,init values in the wxSpinCtrl constructor
-    spin1->SetRange(MIN_MEM_MB, MAX_MEM_MB);
-    spin1->SetValue(algoinfo[algopos1]->algomem);
-    spin2->SetRange(2, MAX_BASESTEP);
-    spin2->SetValue(algoinfo[algopos1]->defbase);
+    // init control values
+    spin1->SetRange(MIN_MEM_MB, MAX_MEM_MB); spin1->SetValue(algoinfo[algopos1]->algomem);
+    spin2->SetRange(2, MAX_BASESTEP);        spin2->SetValue(algoinfo[algopos1]->defbase);
     spin3->SetRange(0, MAX_DELAY);           spin3->SetValue(mindelay);
     spin4->SetRange(0, MAX_DELAY);           spin4->SetValue(maxdelay);
     spin1->SetFocus();
@@ -3695,7 +3699,7 @@ wxPanel* PrefsDialog::CreateViewPrefs(wxWindow* parent)
     wxCheckBox* check2 = new wxCheckBox(panel, PREF_SHOW_BOLD, _("Show bold grid lines every"));
 
     wxSpinCtrl* spin2 = new MySpinCtrl(panel, PREF_BOLD_SPACING, wxEmptyString,
-                                       wxDefaultPosition, wxSize(70, wxDefaultCoord));
+                                       wxDefaultPosition, wxDefaultSize);
 
     hbox2->Add(check2, 0, wxALIGN_CENTER_VERTICAL, 0);
     hbox2->Add(spin2, 0, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, SPINGAP);
@@ -3752,7 +3756,7 @@ wxPanel* PrefsDialog::CreateViewPrefs(wxWindow* parent)
     wxBoxSizer* hbox7 = new wxBoxSizer(wxHORIZONTAL);
     hbox7->Add(senslabel, 0, wxALIGN_CENTER_VERTICAL, 0);
     wxSpinCtrl* spin4 = new MySpinCtrl(panel, PREF_SENSITIVITY, wxEmptyString,
-                                       wxDefaultPosition, wxSize(70, wxDefaultCoord));
+                                       wxDefaultPosition, wxDefaultSize);
     hbox7->Add(spin4, 0, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, SPINGAP);
 
     // thumb_range
@@ -3766,7 +3770,7 @@ wxPanel* PrefsDialog::CreateViewPrefs(wxWindow* parent)
     wxBoxSizer* hbox5 = new wxBoxSizer(wxHORIZONTAL);
     hbox5->Add(thumblabel, 0, wxALIGN_CENTER_VERTICAL, 0);
     wxSpinCtrl* spin5 = new MySpinCtrl(panel, PREF_THUMB_RANGE, wxEmptyString,
-                                       wxDefaultPosition, wxSize(70, wxDefaultCoord));
+                                       wxDefaultPosition, wxDefaultSize);
     hbox5->Add(spin5, 0, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, SPINGAP);
     hbox5->Add(new wxStaticText(panel, wxID_STATIC, _("times view size")),
                0, wxALIGN_CENTER_VERTICAL, 0);
@@ -3864,7 +3868,7 @@ wxPanel* PrefsDialog::CreateLayerPrefs(wxWindow* parent)
                                      _("Opacity percentage when drawing stacked layers:")),
                     0, wxALIGN_CENTER_VERTICAL, 0);
     wxSpinCtrl* spin1 = new MySpinCtrl(panel, PREF_OPACITY, wxEmptyString,
-                                       wxDefaultPosition, wxSize(70, wxDefaultCoord));
+                                       wxDefaultPosition, wxDefaultSize);
     opacitybox->Add(spin1, 0, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, SPINGAP);
 
     // tile_border
@@ -3874,7 +3878,7 @@ wxPanel* PrefsDialog::CreateLayerPrefs(wxWindow* parent)
                                     _("Border thickness for tiled layers:")),
                    0, wxALIGN_CENTER_VERTICAL, 0);
     wxSpinCtrl* spin2 = new MySpinCtrl(panel, PREF_TILE_BORDER, wxEmptyString,
-                                       wxDefaultPosition, wxSize(70, wxDefaultCoord));
+                                       wxDefaultPosition, wxDefaultSize);
     borderbox->Add(spin2, 0, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, SPINGAP);
 
     // ask_on_new, ask_on_load, ask_on_delete, ask_on_quit, warn_on_save

@@ -183,10 +183,7 @@ const int MIN_TOGGLE_WD = 48;
 #endif
 
 // width and height of bitmap buttons
-#if defined(__WXOSX_COCOA__) && wxCHECK_VERSION(3,0,0)
-    const int BUTTON_WD = 24;
-    const int BUTTON_HT = 24;
-#elif defined(__WXOSX_COCOA__) || defined(__WXGTK__)
+#ifdef __WXGTK__
     const int BUTTON_WD = 28;
     const int BUTTON_HT = 28;
 #else
