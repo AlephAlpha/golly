@@ -2577,9 +2577,15 @@ void MainFrame::CreateDirControl()
 wxTreeCtrl* treectrl = filectrl->GetTreeCtrl();
     
 #if defined(__WXGTK__)
-    // make sure background is white when using KDE's GTK theme
+    // Match the desktop theme so the file tree remains readable in dark mode.
+    const wxColour windowbg = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
+    const wxColour windowfg = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
+    filectrl->SetBackgroundColour(windowbg);
+    filectrl->SetForegroundColour(windowfg);
     treectrl->SetBackgroundStyle(wxBG_STYLE_ERASE);
     treectrl->SetBackgroundColour(*wxWHITE);
+    treectrl->SetBackgroundColour(windowbg);
+    treectrl->SetForegroundColour(windowfg);
     // reduce indent a bit
     treectrl->SetIndent(8);
 #elif defined(__WXMAC__)
