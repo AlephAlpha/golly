@@ -5,7 +5,7 @@
     Golly uses a statically embedded Lua interpreter to execute .lua scripts.
     Here is the official Lua copyright notice:
 
-    Copyright 1994-2022 Lua.org, PUC-Rio.
+    Copyright 1994-2026 Lua.org, PUC-Rio.
     
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
