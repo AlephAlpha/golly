@@ -61,13 +61,13 @@ ifdef ENABLE_SOUND
 endif
 
 # For Python script support
-PYTHON_INCLUDE = -I`$(PYTHON) -c "import distutils.sysconfig as s; print(s.get_python_inc())"`
+PYTHON_INCLUDE = -I`$(PYTHON) -c "import sysconfig as s; print(s.get_config_var('INCLUDEPY'))"`
 # we don't want to link against a specific library: PYTHON_LINK = -lpython2.3
 # following generates "-Xlinker -export-dynamic" but doesn't seem to be needed
-# PYTHON_LINK = `python -c "import distutils.sysconfig; print distutils.sysconfig.get_config_var('LINKFORSHARED')"`
+# PYTHON_LINK = `$(PYTHON) -c "import sysconfig as s; print(s.get_config_var('LINKFORSHARED'))"`
 PYTHON_LINK =
 # the following determines the filename for the python dynamic library (e.g. libpython3.8.so)
-PYTHON_SHLIB = `$(PYTHON) -c "import distutils.sysconfig as s; print(s.get_config_var('LDLIBRARY'))"`
+PYTHON_SHLIB = `$(PYTHON) -c "import sysconfig as s; print(s.get_config_var('LDLIBRARY'))"`
 PYTHON_PREFS = -DPYTHON_SHLIB="$(PYTHON_SHLIB)"
 
 # default settings for zlib support, so clear these to build without zlib
