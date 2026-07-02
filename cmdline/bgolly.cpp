@@ -13,13 +13,12 @@
 #include "viewport.h"
 #include "liferender.h"
 #include "writepattern.h"
-#include <stdlib.h>
 #include <iostream>
-#include <cstdio>
+#include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
-#include <cstdlib>
 
-using namespace std ;
+using std::cerr, std::cout, std::flush, std::endl ;
 
 double start ;
 int maxtime = 0 ;
