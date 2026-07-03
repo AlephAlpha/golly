@@ -18,7 +18,10 @@
 #include <stdio.h>
 #include <string.h>
 
-using std::cerr, std::cout, std::flush, std::endl ;
+using std::cerr ;
+using std::cout ;
+using std::flush ;
+using std::endl ;
 
 double start ;
 int maxtime = 0 ;
