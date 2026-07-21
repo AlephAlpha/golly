@@ -190,9 +190,10 @@ function m.maketext(s, font)
     end
     
     for ch in string.gmatch(s, ".[\128-\191]*") do
-        if f[ch] == nil then ch = unknown end
-        p = p + gp.pattern(g.transform(f[ch], x, 0))
-        x = x + f[ch].width
+        local char = ch
+        if f[char] == nil then char = unknown end
+        p = p + gp.pattern(g.transform(f[char], x, 0))
+        x = x + f[char].width
     end
     
     return p
