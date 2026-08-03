@@ -1,0 +1,50 @@
+# 2D Turing machine ("turmite") that creates a self-similar dragon curve. The curve grows by copying
+# cells one at a time that represent straight, right and left moves. Created by Greg Turk.
+#
+# Paper: "Vants and Turmites" Greg Turk, Artificial Life (2025) 31 (4): 401-434.
+# https://doi.org/10.1162/ARTL.a.9
+# https://direct.mit.edu/artl/article-abstract/31/4/401/133576/Vants-and-Turmites
+#
+# Code: https://github.com/gturk1/turmites
+#
+# As with Langton's Loops the 'tape' is read twice: once as data to be copied (with left and right flipped),
+# once as instructions to be followed.
+#
+# Colors:
+# 0: background
+# 1: right turn (b)
+# 2: left turn (c)
+# 3: straight ahead (d)
+# 4: right turn, to be copied (b')
+# 5: left turn, to be copied (c')
+# 6: straight ahead, to be copied (d')
+# 7+: as above but with a turmite standing on top in different states and different orientations
+#
+# The first two states initialize the dragon curve and could be removed if we started the turmite on the
+# correct pattern.
+#
+# Specification string:
+# {{{6,1,1},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0}},
+# {{1,2,6},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0}},
+# {{1,4,2},{4,2,2},{5,8,2},{6,1,2},{0,0,0},{0,0,0},{3,1,3}},
+# {{0,4,2},{1,8,3},{2,2,3},{3,1,3},{1,4,4},{2,4,5},{3,4,6}},
+# {{2,4,3},{1,2,4},{2,8,4},{3,1,4},{0,0,0},{0,0,0},{0,0,0}},
+# {{1,4,3},{1,2,5},{2,8,5},{3,1,5},{0,0,0},{0,0,0},{0,0,0}},
+# {{3,4,3},{1,2,6},{2,8,6},{3,1,6},{0,0,0},{0,0,0},{0,0,0}}}
+#
+# This string is a curly-bracketed table of n_states rows and n_colors columns,
+# where each entry is a triple of integers. The elements of each triple are:
+# - new color of the square
+# - direction(s) for the turmite to turn: 1=noturn, 2=right, 4=u-turn, 8=left
+# - new internal state of the turmite
+#
+# For example, the triple {1,2,1} says:
+# - set the color of the square to 1
+# - turn right (2)
+# - adopt state 1 and move forward one square
+#
+# To generate Turmites like this one, run this script:
+# Scripts/Python/Rule-Generators/Turmite-gen.py
+#
+x = 1, y = 1, rule = Turmite_611000000000000000000126000000000000000000142422582612000000313042183223313144245346243124284314000000000143125285315000000000343126286316000000000
+G!
