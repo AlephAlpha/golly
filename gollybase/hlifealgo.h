@@ -264,6 +264,7 @@ private:
    leaf *newleaf() ;
    node *newclearednode() ;
    leaf *newclearedleaf() ;
+   void repurpose(void *mem, size_t bytes) ;
    void pushroot_1() ;
    int node_depth(node *n) ;
    node *zeronode(int depth) ;

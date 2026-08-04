@@ -159,7 +159,7 @@ void hlifealgo::resize() {
      hashlimit = G_MAX ;
      return ;
    }
-   alloced += sizeof(node *) * (nhashprime - hashprime) ;
+   alloced += sizeof(node *) * nhashprime ;
    g_uintptr_t ohashprime = hashprime ;
    hashprime = nhashprime ;
 #ifndef PRIMEMOD
@@ -181,7 +181,7 @@ void hlifealgo::resize() {
          p = np ;
       }
    }
-   free(hashtab) ;
+   repurpose(hashtab, ohashprime * sizeof(node*)) ;
    hashtab = nhashtab ;
    hashlimit = (g_uintptr_t)(maxloadfactor * hashprime) ;
    if (verbose) {
@@ -526,31 +526,66 @@ leaf *hlifealgo::dorecurs_leaf_quarter(leaf *n, leaf *ne,
 }
 /*
  *   We keep free nodes in a linked list for allocation, and we allocate
- *   them 1000 at a time.
+ *   them 1360 at a time.  We used to do 1000, but this was interacting
+ *   with certain (MacOS) memory allocators and instead of allocating the
+ *   requested 48,000 bytes, they were allocating 65,536 bytes and
+ *   wasting a good fraction of the memory available.  Using 1360 gets us
+ *   closer to 65536, while still leaving some memory for any headers the
+ *   allocator might need.
  */
+static const int NODECHUNKCOUNT = 1360 ;
 node *hlifealgo::newnode() {
    node *r ;
    if (freenodes == 0) {
       int i ;
-      freenodes = (node *)calloc(1001, sizeof(node)) ;
+      freenodes = (node *)calloc(NODECHUNKCOUNT+1, sizeof(node)) ;
       if (freenodes == 0)
          lifefatal("Out of memory; try reducing the hash memory limit.") ;
-      alloced += 1001 * sizeof(node) ;
+      alloced += NODECHUNKCOUNT * sizeof(node) ;
       freenodes->next = nodeblocks ;
+      freenodes->res = (struct node *)NODECHUNKCOUNT ;
       nodeblocks = freenodes++ ;
-      for (i=0; i<999; i++) {
+      for (i=0; i<(NODECHUNKCOUNT-1); i++) {
          freenodes[1].next = freenodes ;
          freenodes++ ;
       }
-      totalthings += 1000 ;
+      totalthings += NODECHUNKCOUNT ;
    }
-   if (freenodes->next == 0 && alloced + 1000 * sizeof(node) > maxmem &&
+   if (freenodes->next == 0 && alloced + NODECHUNKCOUNT * sizeof(node) > maxmem &&
        okaytogc) {
       do_gc(0) ;
    }
    r = freenodes ;
    freenodes = freenodes->next ;
    return r ;
+}
+/*
+ *   Instead of freeing old hashtable arrays (which can be large), in hopes
+ *   the system will reuse that memory for nodes, we instead chop up the
+ *   arrays ourself into node blocks.  This is because modern zoned memory
+ *   allocators may often never return large blocks to the system, or reuse
+ *   freed large blocks for smaller allocations, leading to memory use that
+ *   is much larger than the user set as the limit.
+ */
+void hlifealgo::repurpose(void *mem, g_uintptr_t bytes) {
+   g_uintptr_t nodecount = bytes / sizeof(struct node) ;
+   if (nodecount < 2) {
+      free(mem) ;
+      alloced -= bytes ;
+      return ;
+   }
+   struct node *newblock = (struct node *)mem ;
+   newblock->next = nodeblocks ;
+   nodeblocks = newblock ;
+   nodecount-- ;
+   newblock->res = (struct node *)nodecount ;
+   newblock++ ;
+   g_uintptr_t i ;
+   for (i=0; i<nodecount; i++)
+      newblock[i].next = newblock + i + 1 ;
+   newblock[nodecount-1].next = freenodes ;
+   freenodes = newblock ;
+   totalthings += nodecount ;
 }
 /*
  *   Leaves are the same.
@@ -1444,7 +1479,7 @@ void hlifealgo::do_gc(int invalidate) {
    freenodes = 0 ;
    for (p=nodeblocks; p; p=p->next) {
       poller->poll() ;
-      for (pp=p+1, i=1; i<1001; i++, pp++) {
+      for (pp=p+1, i=1; i<((g_uintptr_t)(p->res)+1); i++, pp++) {
          if (marked(pp)) {
             g_uintptr_t h = 0 ;
             if (pp->nw) { /* yes, it's a node */
@@ -1540,7 +1575,7 @@ void hlifealgo::new_ngens(int newval) {
             clearcache(p, node_depth(p), clearto) ;
    for (p=nodeblocks; p; p=p->next) {
       poller->poll() ;
-      for (pp=p+1, i=1; i<1001; i++, pp++)
+      for (pp=p+1, i=1; i<((g_uintptr_t)(p->res))+1; i++, pp++)
          clearmark(pp) ;
    }
    halvesdone = 0 ;

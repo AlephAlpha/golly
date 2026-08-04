@@ -99,7 +99,7 @@ void ghashbase::resize() {
      hashlimit = G_MAX ;
      return ;
    }
-   alloced += sizeof(ghnode *) * (nhashprime - hashprime) ;
+   alloced += sizeof(ghnode *) * nhashprime ;
    g_uintptr_t ohashprime = hashprime ;
    hashprime = nhashprime ;
 #ifndef PRIMEMOD
@@ -121,7 +121,7 @@ void ghashbase::resize() {
          p = np ;
       }
    }
-   free(hashtab) ;
+   repurpose(hashtab, sizeof(ghnode *) * ohashprime) ;
    hashtab = nhashtab ;
    hashlimit = (g_uintptr_t)(maxloadfactor * hashprime) ;
    if (verbose) {
@@ -429,25 +429,28 @@ ghleaf *ghashbase::dorecurs_ghleaf(ghleaf *nw, ghleaf *ne, ghleaf *sw,
 }
 /*
  *   We keep free ghnodes in a linked list for allocation, and we allocate
- *   them 1000 at a time.
+ *   them 1360 at a time.  This gives allocations close to, but not quite,
+ *   a power of two, to make memory allocators happy.
  */
+static const int NODECHUNKCOUNT = 1360 ;
 ghnode *ghashbase::newghnode() {
    ghnode *r ;
    if (freeghnodes == 0) {
       int i ;
-      freeghnodes = (ghnode *)calloc(1001, sizeof(ghnode)) ;
+      freeghnodes = (ghnode *)calloc(NODECHUNKCOUNT+1, sizeof(ghnode)) ;
       if (freeghnodes == 0)
          lifefatal("Out of memory; try reducing the hash memory limit.") ;
-      alloced += 1001 * sizeof(ghnode) ;
+      alloced += (NODECHUNKCOUNT + 1) * sizeof(ghnode) ;
       freeghnodes->next = ghnodeblocks ;
+      freeghnodes->res = (struct ghnode *)NODECHUNKCOUNT ;
       ghnodeblocks = freeghnodes++ ;
-      for (i=0; i<999; i++) {
+      for (i=0; i<(NODECHUNKCOUNT-1); i++) {
          freeghnodes[1].next = freeghnodes ;
          freeghnodes++ ;
       }
-      totalthings += 1000 ;
+      totalthings += NODECHUNKCOUNT ;
    }
-   if (freeghnodes->next == 0 && alloced + 1000 * sizeof(ghnode) > maxmem &&
+   if (freeghnodes->next == 0 && alloced + NODECHUNKCOUNT * sizeof(ghnode) > maxmem &&
        okaytogc) {
       do_gc(0) ;
    }
@@ -455,6 +458,34 @@ ghnode *ghashbase::newghnode() {
    freeghnodes = freeghnodes->next ;
    return r ;
 }
+/*          
+ *   Instead of freeing old hashtable arrays (which can be large), in hopes
+ *   the system will reuse that memory for nodes, we instead chop up the
+ *   arrays ourself into node blocks.  This is because modern zoned memory
+ *   allocators may often never return large blocks to the system, or reuse
+ *   freed large blocks for smaller allocations, leading to memory use that
+ *   is much larger than the user set as the limit.
+ */
+void ghashbase::repurpose(void *mem, g_uintptr_t bytes) {
+   g_uintptr_t nodecount = bytes / sizeof(struct ghnode) ;
+   if (nodecount < 2) {
+      free(mem) ;
+      alloced -= bytes ;
+      return ;
+   }        
+   struct ghnode *newblock = (struct ghnode *)mem ;
+   newblock->next = ghnodeblocks ;
+   ghnodeblocks = newblock ;
+   nodecount-- ;
+   newblock->res = (struct ghnode *)nodecount ;
+   newblock++ ; 
+   g_uintptr_t i ;
+   for (i=0; i<nodecount; i++)
+      newblock[i].next = newblock + i + 1 ;
+   newblock[nodecount-1].next = freeghnodes ;
+   freeghnodes = newblock ;
+   totalthings += nodecount ;
+}  
 /*
  *   Leaves are the same.
  */
@@ -1301,7 +1332,7 @@ void ghashbase::do_gc(int invalidate) {
    freeghnodes = 0 ;
    for (p=ghnodeblocks; p; p=p->next) {
       poller->poll() ;
-      for (pp=p+1, i=1; i<1001; i++, pp++) {
+      for (pp=p+1, i=1; i<((g_uintptr_t)(p->res))+1; i++, pp++) {
          if (marked(pp)) {
             g_uintptr_t h = 0 ;
             if (pp->nw) { /* yes, it's a ghnode */
@@ -1433,7 +1464,7 @@ void ghashbase::new_ngens(int newval) {
             clearcache(p, ghnode_depth(p), clearto) ;
    for (p=ghnodeblocks; p; p=p->next) {
       poller->poll() ;
-      for (pp=p+1, i=1; i<1001; i++, pp++)
+      for (pp=p+1, i=1; i<((g_uintptr_t)(p->res))+1; i++, pp++)
          clearmark(pp) ;
    }
    halvesdone = 0 ;

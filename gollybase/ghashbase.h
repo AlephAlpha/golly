@@ -173,6 +173,7 @@ private:
    ghleaf *newghleaf() ;
    ghnode *newclearedghnode() ;
    ghleaf *newclearedghleaf() ;
+   void repurpose(void *mem, g_uintptr_t bytes) ;
    void pushroot_1() ;
    int ghnode_depth(ghnode *n) ;
    ghnode *zeroghnode(int depth) ;
