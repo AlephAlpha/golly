@@ -146,10 +146,6 @@ void MainFrame::ResetPattern(bool resetundo)
         currlayer->undoredo->RememberGenStart();
     }
     
-    // save current algo and rule
-    algo_type oldalgo = currlayer->algtype;
-    wxString oldrule = wxString(currlayer->algo->getrule(), wxConvLocal);
-    
     // restore pattern and settings saved by SaveStartingPattern;
     // first restore algorithm
     currlayer->algtype = currlayer->startalgo;
@@ -201,11 +197,9 @@ void MainFrame::ResetPattern(bool resetundo)
     // restore selection
     currlayer->currsel = currlayer->startsel;
     
-    // switch to default colors if algo/rule changed
-    wxString newrule = wxString(currlayer->algo->getrule(), wxConvLocal);
-    if (oldalgo != currlayer->algtype || oldrule != newrule) {
-        UpdateLayerColors();
-    }
+    // switch to default colors and icons in case algo/rule changed
+    // (even if rule didn't change user might have edited .rule file before doing reset)
+    UpdateLayerColors();
     
     // update window title in case currname, rule or dirty flag changed;
     // note that UpdateLayerItem(currindex) gets called
@@ -251,6 +245,11 @@ void MainFrame::RestorePattern(bigint& gen, const wxString& filename,
         
         // restore position and scale, if allowed
         if (restoreview) viewptr->SetPosMag(x, y, mag);
+        
+        if (strcmp(algoinfo[currlayer->algtype]->algoName, "RuleLoader") == 0) {
+            // update colors and icons in case user edited .rule file before an undo/redo
+            UpdateLayerColors();
+        }
         
         UpdatePatternAndStatus();
     }
